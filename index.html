@@ -254,7 +254,7 @@ th{background:var(--pen-bg);font-weight:700}
 </div></section>
 
 <!-- ======================= 1 · FIL CONDUCTEUR ======================= -->
-<section class="lesson" id="fil" data-bloc="general" data-part="Vue d'ensemble" data-title="Le fil conducteur" hidden>
+<section class="lesson" id="fil" data-min="12" data-bloc="general" data-part="Vue d'ensemble" data-title="Le fil conducteur" hidden>
 <header class="lhead"><p class="eyebrow">Vue d'ensemble · Étape 1 sur 18<span class="meta">12 min</span></p><h2>Le fil conducteur</h2></header>
 <div class="lbody">
 <p class="objectif">Savoir redessiner le trajet de mémoire et y placer les quatorze sujets.</p>
@@ -354,8 +354,96 @@ th{background:var(--pen-bg);font-weight:700}
 <p>« Le modèle du périmètre supposait un intérieur sûr. Le télétravail et le cloud ont placé utilisateurs et applications hors de ce périmètre, et les intrusions ont montré qu'un attaquant interne se déplaçait sans contrôle. Le Zero Trust y répond en supprimant la confiance implicite : chaque demande est vérifiée explicitement, avec le moindre privilège, en supposant la compromission. »</p></div>
 </div></section>
 
+<section class="lesson" id="labo" data-bloc="general" data-part="Vue d'ensemble" data-title="Le laboratoire" data-min="90" hidden>
+<header class="lhead"><p class="eyebrow"></p><h2>Le laboratoire</h2></header>
+<div class="lbody">
+<p class="objectif">Monter une fois la petite entreprise qui servira aux treize TP du semestre.</p>
+
+<p>Ne montez pas quatorze maquettes. Montez <strong>une petite entreprise fictive</strong> et ajoutez-lui une couche à chaque bloc. À la fin du semestre vous aurez sous la main l'architecture complète du fil conducteur, et vous pourrez répondre à n'importe quelle question en la montrant plutôt qu'en la récitant.</p>
+
+<p>Cette étape n'est pas un sujet d'examen. C'est l'outil qui rend les treize suivantes possibles. Comptez une après-midi pour la couche 1, puis une heure à chaque fois que vous en ajoutez une.</p>
+
+<h3>Le plan d'adressage, à écrire avant la première machine</h3>
+<p>Vous venez de passer des semaines sur le découpage d'adresses. C'est ici qu'il sert. Trois réseaux, un par population, plus la patte externe du pare-feu.</p>
+<div class="table-wrap"><table>
+<tr><th style="width:150px">Réseau</th><th style="width:170px">Plage</th><th style="width:130px">Passerelle</th><th>Qui s'y trouve</th></tr>
+<tr><td><strong>Serveurs</strong></td><td><code>10.10.10.0/24</code></td><td><code>10.10.10.1</code></td><td>Contrôleur de domaine, Wazuh, serveur web</td></tr>
+<tr><td><strong>Postes</strong></td><td><code>10.10.20.0/24</code></td><td><code>10.10.20.1</code></td><td>Client Windows, poste Linux</td></tr>
+<tr><td><strong>Quarantaine</strong></td><td><code>10.10.30.0/24</code></td><td><code>10.10.30.1</code></td><td>Machines refusées par le NAC, et Kali</td></tr>
+<tr><td><strong>Externe</strong></td><td>DHCP de votre box</td><td>—</td><td>La patte WAN de pfSense</td></tr>
+</table></div>
+<p>Notez ces quatre lignes sur une feuille et gardez-la à côté du clavier tout le semestre. La moitié des pannes que vous provoquerez viendront d'une adresse mal recopiée.</p>
+
+<h3>Les quatre couches</h3>
+<p>Chaque couche s'ajoute quand son bloc arrive. Avec 16 Go de mémoire vous tenez l'ensemble, mais prenez l'habitude de n'allumer que ce dont vous avez besoin : une maquette qui démarre en trente secondes se manipule, une maquette qui met cinq minutes se contourne.</p>
+<div class="table-wrap"><table>
+<tr><th style="width:62px">Couche</th><th style="width:210px">Ce qu'on ajoute</th><th style="width:92px">Mémoire</th><th>Ce que ça débloque</th></tr>
+<tr><td><strong>1</strong></td><td>pfSense en routeur et pare-feu, Windows Server promu contrôleur de domaine, un poste client Windows</td><td>4,5 Go</td><td>Stations 2 à 8 : NAC, Zero Trust, AD, PKI, IAM, SSO, TP AD</td></tr>
+<tr><td><strong>2</strong></td><td>Les trois réseaux séparés sur pfSense, les règles entre eux, FreeRADIUS</td><td>+0,5 Go</td><td>Les TP de segmentation et d'admission</td></tr>
+<tr><td><strong>3</strong></td><td>Wazuh sur Ubuntu, un agent sur chaque machine, Kali comme attaquant</td><td>+6 Go</td><td>Stations 11 à 15 : IDS/IPS, Snort, Wazuh, SIEM, CTI</td></tr>
+<tr><td><strong>4</strong></td><td>Un serveur web vulnérable avec ModSecurity devant</td><td>+1 Go</td><td>Stations 9 et 10 : WAF, proxy, cloud</td></tr>
+</table></div>
+
+<h3>Monter la couche 1</h3>
+<div class="exo"><p class="exo-n">À faire maintenant · 2 h</p>
+<ol>
+<li>Installer VirtualBox, créer trois réseaux internes nommés <code>srv</code>, <code>lan</code> et <code>quar</code>.</li>
+<li>Installer <strong>pfSense</strong> avec quatre interfaces : WAN en accès par pont, puis une patte sur chacun des trois réseaux internes. Lui donner les adresses <code>.1</code> du tableau.</li>
+<li>Installer <strong>Windows Server</strong> sur le réseau <code>srv</code> en <code>10.10.10.10</code>, le promouvoir contrôleur de domaine du domaine <code>labo.local</code>.</li>
+<li>Installer un <strong>client Windows</strong> sur le réseau <code>lan</code>, le joindre au domaine.</li>
+<li>Vérifier : depuis le client, <code>nltest /dsgetdc:labo.local</code> doit répondre, et un <code>ping 10.10.10.10</code> doit passer.</li>
+</ol></div>
+
+<div class="retenir"><p class="lab">Les trois règles d'hygiène</p>
+<p><strong>Instantané après chaque état qui marche.</strong> Vous allez casser des choses volontairement. Sans instantané, vous passerez vos soirées à réinstaller au lieu d'apprendre.</p>
+<p><strong>Un mot de passe unique pour tout le laboratoire.</strong> Ce n'est pas une bonne pratique de production, c'en est une de laboratoire : vous ne devez jamais perdre dix minutes sur une authentification.</p>
+<p><strong>Une page de journal par séance.</strong> Le schéma, ce que vous avez configuré, ce qui a échoué et pourquoi.</p></div>
+
+<div class="prof"><p class="lab">Pour retenir</p>
+<p>La tentation est de monter la maquette entière le premier jour. Ne le fais pas : tu passerais une semaine à installer sans rien apprendre, et la moitié de ce que tu aurais monté serait à refaire au moment de t'en servir. Une couche par bloc, au moment où tu en as besoin.</p>
+<p>Et prends tes instantanés. Vraiment. C'est le conseil que tout le monde ignore et que tout le monde regrette.</p></div>
+
+<h3>Vérifie que ta maquette tient</h3>
+<div class="qcm" data-answer="2"><p class="qcm-n">Question 1</p>
+<p class="qcm-q">Depuis le poste en <code>10.10.20.50</code>, un <code>ping 10.10.10.10</code> échoue. La passerelle du poste est <code>10.10.30.1</code>. Où est l'erreur ?</p>
+<button class="opt">Le pare-feu bloque l'ICMP</button>
+<button class="opt">Le serveur est éteint</button>
+<button class="opt">La passerelle n'appartient pas au sous-réseau du poste</button>
+<button class="opt">Le masque du serveur est faux</button>
+<div class="qcm-exp">Règle fondamentale : la passerelle doit toujours appartenir au même sous-réseau que la machine. Un poste en <code>10.10.20.50/24</code> ne peut pas joindre <code>10.10.30.1</code> sans déjà savoir sortir — c'est le serpent qui se mord la queue. La bonne passerelle est <code>10.10.20.1</code>.</div></div>
+
+<div class="qcm" data-answer="1"><p class="qcm-n">Question 2</p>
+<p class="qcm-q">Combien d'adresses utilisables contient le réseau des serveurs <code>10.10.10.0/24</code> ?</p>
+<button class="opt">256</button><button class="opt">254</button><button class="opt">255</button><button class="opt">253</button>
+<div class="qcm-exp">2⁸ = 256 adresses au total, moins l'adresse de réseau <code>10.10.10.0</code> et l'adresse de diffusion <code>10.10.10.255</code>. Soit 254 utilisables, passerelle comprise.</div></div>
+
+<div class="qcm" data-answer="0"><p class="qcm-n">Question 3</p>
+<p class="qcm-q">Pourquoi placer Kali dans le réseau de quarantaine plutôt qu'avec les postes ?</p>
+<button class="opt">Pour que ses attaques traversent le pare-feu et soient journalisées</button>
+<button class="opt">Parce que Kali ne fonctionne pas en réseau interne</button>
+<button class="opt">Pour économiser de la mémoire</button>
+<button class="opt">Parce que le NAC l'exige</button>
+<div class="qcm-exp">S'il était sur le même sous-réseau que ses cibles, le trafic ne passerait jamais par pfSense et vous ne verriez rien dans les journaux. En quarantaine, chaque attaque traverse le pare-feu : vous pouvez l'observer, la bloquer, et plus tard la détecter avec Wazuh.</div></div>
+
+<div class="qcm" data-answer="3"><p class="qcm-n">Question 4</p>
+<p class="qcm-q">Vous venez de réussir la jonction du client au domaine. Que faites-vous avant de continuer ?</p>
+<button class="opt">Vous installez Wazuh</button>
+<button class="opt">Vous éteignez tout</button>
+<button class="opt">Vous changez les mots de passe</button>
+<button class="opt">Vous prenez un instantané de chaque machine</button>
+<div class="qcm-exp">C'est le premier état complet qui fonctionne. Il vous servira de point de retour pendant tout le semestre, notamment après les TP où l'on casse volontairement quelque chose.</div></div>
+
+<div class="fiche" data-bloc="general"><p class="lab">La liste de contrôle</p><dl>
+<dt>Couche 1 montée</dt><dd>pfSense route entre les trois réseaux, le domaine <code>labo.local</code> existe, le client y est joint</dd>
+<dt>Adressage</dt><dd>Les quatre lignes du tableau sont écrites sur une feuille, à côté du clavier</dd>
+<dt>Instantanés</dt><dd>Un par machine, nommé <code>couche1-ok</code></dd>
+<dt>Journal</dt><dd>La première page est écrite : schéma, adresses, ce qui a résisté</dd>
+<dt>Prêt pour</dt><dd>Les stations 3 à 9 — vous pouvez enchaîner</dd>
+</dl></div>
+</div></section>
+
 <!-- ======================= 2 · ACCÈS RÉSEAU ======================= -->
-<section class="lesson" id="nac" data-bloc="acces" data-part="Accès réseau" data-title="NAC, PacketFence, 802.1X" hidden>
+<section class="lesson" id="nac" data-min="25" data-bloc="acces" data-part="Accès réseau" data-title="NAC, PacketFence, 802.1X" hidden>
 <header class="lhead"><p class="eyebrow">Accès réseau · Étape 2 sur 18<span class="meta">25 min</span></p><h2>NAC, PacketFence, 802.1X</h2></header>
 <div class="lbody">
 <p class="objectif">Expliquer ce qui se passe entre le moment où le câble est branché et celui où la machine obtient une adresse.</p>
@@ -522,9 +610,270 @@ interface GigabitEthernet0/1
 </div></section>
 
 <!-- ======================= ÉTAPES À VENIR ======================= -->
-<section class="lesson" id="zerotrust" data-bloc="reseau" data-part="Réseau" data-title="Micro-segmentation et Zero Trust" data-soon="1" hidden>
-<header class="lhead"><p class="eyebrow">Réseau · Étape 3 sur 18</p><h2>Micro-segmentation et Zero Trust</h2></header>
-<div class="lbody"><div class="soon"><p><strong>Cette étape n'est pas encore écrite.</strong></p><p>Les étapes arrivent dans l'ordre du trajet, une par séance.</p></div></div></section>
+<section class="lesson" id="zerotrust" data-bloc="reseau" data-part="Réseau" data-title="Micro-segmentation et Zero Trust" data-min="45" hidden>
+<header class="lhead"><p class="eyebrow"></p><h2>Micro-segmentation et Zero Trust</h2></header>
+<div class="lbody">
+<p class="objectif">Savoir dire ce qu'est Zero Trust, ce qu'il n'est pas, et ce que la micro-segmentation vient bloquer exactement.</p>
+
+<p>Un employé ouvre une pièce jointe. Son poste est compromis. L'attaquant n'a pas d'accès administrateur, pas de mot de passe, rien — juste un pied dans le réseau interne. <strong>Combien de machines peut-il atteindre dans l'heure qui suit ?</strong></p>
+<p>Sur un réseau plat, la réponse est : toutes celles de son sous-réseau, puis toutes celles que le pare-feu laisse passer, c'est-à-dire presque tout. C'est le problème que ce sujet résout, et c'est l'angle de la réponse attendue à l'examen.</p>
+
+<h3>Les deux directions du trafic</h3>
+<p>Avant tout le reste, le vocabulaire — sans lui, rien de ce qui suit ne tient.</p>
+<div class="table-wrap"><table>
+<tr><th style="width:150px">Direction</th><th>De quoi il s'agit</th><th style="width:30%">Qui le contrôlait</th></tr>
+<tr><td><strong>Nord-sud</strong></td><td>Entre l'extérieur et l'intérieur. Une requête depuis Internet, une sortie vers le web.</td><td>Le pare-feu de périmètre, depuis trente ans</td></tr>
+<tr><td><strong>Est-ouest</strong></td><td>Entre machines internes. Le poste qui interroge le serveur de fichiers, le serveur qui appelle la base.</td><td><strong>Personne.</strong> C'est tout le sujet</td></tr>
+</table></div>
+<p>Dans un centre de données moderne, le trafic est-ouest représente l'écrasante majorité du volume. C'est aussi par lui que se fait le <strong>déplacement latéral</strong> : la progression d'un attaquant de la machine qu'il a compromise vers celle qui l'intéresse vraiment.</p>
+
+<div class="seq" data-seq="lateral"></div>
+
+<h3>Zero Trust : un modèle, pas un produit</h3>
+<p>C'est la phrase à retenir, et c'est l'erreur que fait tout le monde. Aucun constructeur ne vend « du Zero Trust ». C'est une façon de concevoir l'architecture, formalisée par le NIST dans la publication <a href="https://tsapps.nist.gov/publication/get_pdf.cfm?pub_id=930420">SP 800-207</a>.</p>
+
+<h4>Les trois principes à citer</h4>
+<div class="retenir"><p class="lab">À connaître par cœur</p>
+<p><strong>1 · Ne jamais faire confiance par défaut.</strong> L'emplacement sur le réseau ne confère aucun droit. Être « à l'intérieur » ne veut plus rien dire.<br>
+<strong>2 · Vérifier explicitement, à chaque demande.</strong> Pas une fois à la connexion, mais à chaque accès à chaque ressource.<br>
+<strong>3 · Appliquer le moindre privilège.</strong> Juste ce qu'il faut, juste le temps qu'il faut.</p>
+<p>Un quatrième est presque toujours ajouté : <strong>supposer la compromission</strong>. On conçoit comme si l'attaquant était déjà dedans.</p></div>
+
+<h4>Le modèle de décision</h4>
+<p>Le NIST sépare deux fonctions, et savoir les nommer vaut des points :</p>
+<ul>
+<li>Le <strong>point de décision</strong> (<em>Policy Decision Point</em>) évalue la demande : qui, depuis quelle machine, dans quel état, pour quelle ressource. Il dit oui ou non.</li>
+<li>Le <strong>point d'application</strong> (<em>Policy Enforcement Point</em>) exécute la décision : il ouvre ou ferme le flux. C'est un pare-feu, un proxy, un agent sur l'hôte.</li>
+</ul>
+<p>Vous reconnaissez la structure de la station précédente : le serveur RADIUS décidait, le switch appliquait. Le 802.1X est, à sa petite échelle, une mise en œuvre de ce modèle.</p>
+
+<h4>Les sept principes du SP 800-207, en bref</h4>
+<p>Il n'est pas nécessaire de les réciter, mais savoir qu'ils sont sept et en citer trois ou quatre fait la différence :</p>
+<ol>
+<li>Toute donnée et tout service sont des <strong>ressources</strong>.</li>
+<li>Toute communication est <strong>sécurisée</strong>, quel que soit son emplacement réseau.</li>
+<li>L'accès est accordé <strong>session par session</strong>.</li>
+<li>L'accès est déterminé par une <strong>politique dynamique</strong> : identité, état de la machine, comportement, heure.</li>
+<li>L'organisation <strong>mesure en continu</strong> l'intégrité et la posture de ses équipements.</li>
+<li>L'authentification et l'autorisation sont <strong>dynamiques et strictement appliquées</strong> avant tout accès.</li>
+<li>L'organisation <strong>collecte un maximum d'information</strong> sur l'état du réseau pour améliorer sa posture.</li>
+</ol>
+
+<h3>La micro-segmentation : une technique, parmi d'autres</h3>
+<p>Le NIST décrit trois voies pour mettre en œuvre une architecture Zero Trust. La micro-segmentation est l'une d'elles, celle qui agit sur le réseau :</p>
+<div class="table-wrap"><table>
+<tr><th style="width:230px">Approche</th><th>Ce qu'on déplace</th></tr>
+<tr><td><strong>Par la gouvernance des identités</strong></td><td>La décision repose d'abord sur qui demande. C'est le bloc identité, stations 4 à 7.</td></tr>
+<tr><td><strong>Par la micro-segmentation</strong></td><td>On découpe le réseau en zones si fines qu'une machine compromise ne joint presque rien.</td></tr>
+<tr><td><strong>Par le réseau lui-même</strong></td><td>Un périmètre défini par logiciel : les flux autorisés sont construits à la demande, le reste est invisible.</td></tr>
+</table></div>
+
+<h4>Les quatre façons de segmenter finement</h4>
+<div class="table-wrap"><table>
+<tr><th style="width:190px">Technique</th><th>Comment</th><th style="width:30%">Limite</th></tr>
+<tr><td><strong>VLAN et listes de contrôle</strong></td><td>Un VLAN par population, des ACL entre eux sur le routeur ou le pare-feu.</td><td>Grossier : à l'intérieur d'un VLAN, tout le monde se parle encore</td></tr>
+<tr><td><strong>Pare-feu sur l'hôte</strong></td><td>Chaque machine filtre ses propres flux entrants et sortants.</td><td>Difficile à tenir à jour sur des centaines de postes sans outil central</td></tr>
+<tr><td><strong>Agent et politique centrale</strong></td><td>Un agent sur chaque machine reçoit sa politique d'un serveur. La segmentation suit la machine.</td><td>Produit commercial, coût réel</td></tr>
+<tr><td><strong>Par l'identité de la charge</strong></td><td>La règle ne dit plus « 10.10.10.5 vers 10.10.20.8 » mais « le serveur web vers la base de données ».</td><td>Suppose un inventaire fiable des applications</td></tr>
+</table></div>
+<p>La dernière est la plus intéressante conceptuellement : la règle survit au changement d'adresse IP, ce qui est indispensable dans un environnement de conteneurs où les adresses changent toutes les heures.</p>
+
+<h3>ZTNA : le remplaçant du VPN</h3>
+<p>Un sujet connexe qui tombe souvent, parce qu'il illustre le modèle sur un cas concret.</p>
+<div class="table-wrap"><table>
+<tr><th style="width:170px"></th><th>VPN classique</th><th>ZTNA</th></tr>
+<tr><td><strong>Ce qu'on obtient</strong></td><td>Une adresse sur le réseau interne</td><td>Un accès à <em>une</em> application</td></tr>
+<tr><td><strong>Quand on vérifie</strong></td><td>Une fois, à la connexion</td><td>À chaque demande</td></tr>
+<tr><td><strong>Si le poste est compromis</strong></td><td>L'attaquant est dans le réseau</td><td>Il n'atteint que l'application autorisée</td></tr>
+<tr><td><strong>Ce que voit l'attaquant</strong></td><td>Tout ce que le routage permet</td><td>Rien d'autre : le reste n'est pas joignable</td></tr>
+</table></div>
+<p>Le VPN est l'exemple parfait du modèle du périmètre : il vous fait franchir la frontière, et ensuite il vous fait confiance. Savoir expliquer cela en trois phrases est une réponse d'examen complète.</p>
+
+<h3>Par où l'on commence réellement</h3>
+<p>C'est la question qu'un enseignant pose pour distinguer ceux qui ont lu d'un œil de ceux qui ont compris. La réponse n'est pas « on segmente ».</p>
+<ol>
+<li><strong>Cartographier les flux.</strong> Pendant plusieurs semaines, on observe qui parle à qui. On ne peut pas autoriser ce dont on ignore l'existence.</li>
+<li><strong>Segmenter en mode observation.</strong> Les règles sont écrites mais ne bloquent pas : elles journalisent ce qu'elles auraient bloqué.</li>
+<li><strong>Lire les journaux</strong> et corriger les règles qui auraient cassé la production.</li>
+<li><strong>Basculer en blocage</strong>, zone par zone, en commençant par la moins critique.</li>
+</ol>
+<div class="warn"><p><b>Le piège à citer.</b> Une micro-segmentation activée d'un coup sans cartographie préalable coupe la production dans les minutes qui suivent, et l'organisation revient en arrière définitivement. L'échec le plus courant de ces projets n'est pas technique, il est méthodologique.</p></div>
+
+<h3>Les règles, concrètement</h3>
+<p>Sur pfSense, la segmentation se lit dans les règles par interface. Le principe : une règle d'autorisation explicite par flux légitime, puis un refus général qui journalise.</p>
+<div class="term"><span class="c"># Interface LAN (postes 10.10.20.0/24) — ordre important, la première qui correspond gagne</span>
+pass   in on LAN proto tcp from 10.10.20.0/24 to 10.10.10.10 port { 53 88 389 445 } <span class="c"># annuaire</span>
+pass   in on LAN proto udp from 10.10.20.0/24 to 10.10.10.10 port { 53 88 123 }
+pass   in on LAN proto tcp from 10.10.20.0/24 to 10.10.10.20 port 443        <span class="c"># intranet</span>
+pass   in on LAN proto tcp from 10.10.20.0/24 to !10.10.0.0/16 port { 80 443 } <span class="c"># sortie web</span>
+block  in on LAN from 10.10.20.0/24 to 10.10.20.0/24 <span class="y">log</span>       <span class="c"># poste à poste : interdit</span>
+block  in on LAN all <span class="y">log</span>                                       <span class="c"># le reste, journalisé</span></div>
+<p>La ligne qui fait tout le travail est l'avant-dernière : <strong>un poste ne parle pas à un autre poste</strong>. C'est elle qui coupe le déplacement latéral, et c'est celle qui manque dans 90 % des réseaux d'entreprise.</p>
+
+<p>Côté hôte Linux, le même principe en nftables :</p>
+<div class="term"><span class="c"># Le serveur web n'accepte que le pare-feu en 443, et ne sort que vers la base</span>
+table inet filtre {
+  chain entree { type filter hook input priority 0; policy <span class="y">drop</span>;
+    ct state established,related accept
+    iif lo accept
+    ip saddr 10.10.10.1 tcp dport 443 accept
+  }
+  chain sortie { type filter hook output priority 0; policy <span class="y">drop</span>;
+    ct state established,related accept
+    ip daddr 10.10.10.30 tcp dport 5432 accept       <span class="c"># la base, et rien d'autre</span>
+  }
+}</div>
+<p>Notez la politique par défaut : <code>drop</code>. En micro-segmentation on n'écrit pas ce qu'on interdit, on écrit ce qu'on autorise. Tout le reste tombe.</p>
+
+<div class="prof"><p class="lab">Pour retenir</p>
+<p>Le pare-feu protège la frontière. La micro-segmentation protège contre celui qui l'a déjà franchie. C'est la phrase à placer dans n'importe quelle réponse sur ce sujet.</p>
+<p>Et si on te demande la différence entre Zero Trust et micro-segmentation : le Zero Trust se décide en réunion, la micro-segmentation se configure sur un pare-feu. L'un est une politique, l'autre est sa mise en œuvre — et il en existe d'autres.</p></div>
+
+<div class="confusion"><p class="lab">Ne pas confondre</p>
+<div class="cpair">
+<div><h4>Zero Trust</h4><p>Un modèle d'architecture. Trois principes, un point de décision, un point d'application. Rien à installer.</p></div>
+<div><h4>Micro-segmentation</h4><p>Une technique réseau pour le mettre en œuvre. Des règles, sur un pare-feu ou un hôte.</p></div>
+</div>
+<p class="cline">Zero Trust se décide, la micro-segmentation se configure.</p></div>
+
+<div class="confusion"><p class="lab">Et celle-ci, qui tombe aussi</p>
+<div class="cpair">
+<div><h4>Segmentation</h4><p>Découper en quelques zones : serveurs, postes, invités. Des VLAN et des ACL. Ça existe depuis toujours.</p></div>
+<div><h4>Micro-segmentation</h4><p>Descendre à la machine ou à l'application. Le poste A ne joint pas le poste B, même dans le même VLAN.</p></div>
+</div>
+<p class="cline">C'est une question de granularité, pas de nature.</p></div>
+
+<h3>Vérifie que tu as compris</h3>
+
+<div class="qcm" data-answer="1"><p class="qcm-n">Question 1</p>
+<p class="qcm-q">Le trafic « est-ouest » désigne :</p>
+<button class="opt">Le trafic entrant depuis Internet</button><button class="opt">Le trafic entre machines internes</button>
+<button class="opt">Le trafic chiffré de bout en bout</button><button class="opt">Le trafic vers le cloud</button>
+<div class="qcm-exp">Est-ouest = latéral, entre machines internes. C'est la majorité du volume d'un centre de données, et c'est ce que le pare-feu de périmètre ne voit jamais passer.</div></div>
+
+<div class="qcm" data-answer="2"><p class="qcm-n">Question 2</p>
+<p class="qcm-q">Dans le modèle du NIST, qui exécute la décision d'autoriser ou non un flux ?</p>
+<button class="opt">Le point de décision (PDP)</button><button class="opt">L'annuaire d'identités</button>
+<button class="opt">Le point d'application (PEP)</button><button class="opt">L'agent sur le poste</button>
+<div class="qcm-exp">Le PDP évalue et tranche, le PEP applique. L'agent peut être un PEP, mais ce n'est pas lui qui décide. C'est exactement la séparation vue en 802.1X : le RADIUS décide, le switch applique.</div></div>
+
+<div class="qcm" data-answer="0"><p class="qcm-n">Question 3</p>
+<p class="qcm-q">Quelle affirmation est <strong>fausse</strong> ?</p>
+<button class="opt">Zero Trust est une solution qu'on installe sur le réseau</button>
+<button class="opt">La micro-segmentation est une des façons d'appliquer Zero Trust</button>
+<button class="opt">Zero Trust suppose que l'attaquant est peut-être déjà dedans</button>
+<button class="opt">Le NIST décrit trois approches de déploiement</button>
+<div class="qcm-exp">Aucun produit n'est « du Zero Trust ». C'est un modèle d'architecture. Les constructeurs vendent des briques qui aident à le mettre en œuvre — ce n'est pas la même chose, et cette nuance est précisément ce qu'on teste.</div></div>
+
+<div class="qcm" data-answer="3"><p class="qcm-n">Question 4</p>
+<p class="qcm-q">Dans la configuration pfSense ci-dessus, quelle ligne coupe le déplacement latéral ?</p>
+<button class="opt">La règle qui autorise le DNS vers le contrôleur de domaine</button>
+<button class="opt">La règle de sortie web</button>
+<button class="opt">Le <code>block in on LAN all</code> final</button>
+<button class="opt">Le <code>block</code> du réseau des postes vers lui-même</button>
+<div class="qcm-exp">C'est elle qui empêche un poste compromis d'atteindre ses voisins. Le <code>block all</code> final ne suffit pas : le trafic entre deux machines du même sous-réseau ne traverse même pas le pare-feu s'il n'y a pas d'isolation au niveau 2 — d'où l'importance de la règle explicite et, en pratique, d'un VLAN privé sur le switch.</div></div>
+
+<div class="qcm" data-answer="1"><p class="qcm-n">Question 5</p>
+<p class="qcm-q">Une entreprise veut segmenter finement. Par quoi commence-t-elle ?</p>
+<button class="opt">Par écrire les règles de blocage</button>
+<button class="opt">Par cartographier les flux existants</button>
+<button class="opt">Par acheter une solution d'agents</button>
+<button class="opt">Par découper les VLAN</button>
+<div class="qcm-exp">On ne peut pas autoriser ce dont on ignore l'existence. La cartographie d'abord, puis des règles en mode observation, puis le basculement zone par zone. Bloquer d'emblée coupe la production et tue le projet.</div></div>
+
+<div class="qcm" data-answer="2"><p class="qcm-n">Question 6</p>
+<p class="qcm-q">Qu'est-ce qui distingue le ZTNA d'un VPN classique ?</p>
+<button class="opt">Le ZTNA chiffre mieux</button>
+<button class="opt">Le ZTNA ne nécessite pas de client</button>
+<button class="opt">Le VPN donne accès au réseau, le ZTNA à une application</button>
+<button class="opt">Le ZTNA est plus rapide</button>
+<div class="qcm-exp">Le VPN vous fait franchir la frontière puis vous fait confiance : vous obtenez une adresse interne et tout ce que le routage permet. Le ZTNA n'expose qu'une application, et revérifie à chaque demande.</div></div>
+
+<div class="qcm" data-answer="0"><p class="qcm-n">Question 7</p>
+<p class="qcm-q">Pourquoi une règle fondée sur l'identité de la charge de travail vaut-elle mieux qu'une règle fondée sur l'adresse IP ?</p>
+<button class="opt">Elle survit au changement d'adresse, courant avec les conteneurs</button>
+<button class="opt">Elle est plus rapide à évaluer</button>
+<button class="opt">Elle consomme moins de mémoire sur le pare-feu</button>
+<button class="opt">Elle chiffre le trafic</button>
+<div class="qcm-exp">« Le serveur web vers la base » reste vrai quand les adresses changent toutes les heures. Avec des conteneurs, une règle écrite en adresses IP est périmée avant d'être déployée.</div></div>
+
+<div class="qcm" data-answer="3"><p class="qcm-n">Question 8</p>
+<p class="qcm-q">En micro-segmentation, quelle est la politique par défaut d'une chaîne de filtrage ?</p>
+<button class="opt">Autoriser, puis bloquer les exceptions</button>
+<button class="opt">Autoriser tout le trafic sortant</button>
+<button class="opt">Journaliser sans bloquer</button>
+<button class="opt">Refuser, puis autoriser explicitement le nécessaire</button>
+<div class="qcm-exp">Politique <code>drop</code> par défaut. On n'écrit pas ce qu'on interdit, on écrit la courte liste de ce qu'on autorise. C'est le moindre privilège appliqué au réseau.</div></div>
+
+<div class="qcm" data-answer="1"><p class="qcm-n">Question 9</p>
+<p class="qcm-q">Question d'examen probable : « Justifiez l'apparition du modèle Zero Trust. »</p>
+<button class="opt">Les pare-feu sont devenus trop coûteux à maintenir</button>
+<button class="opt">Télétravail, cloud et déplacement latéral ont vidé le périmètre de son sens</button>
+<button class="opt">Le chiffrement généralisé a rendu l'inspection impossible</button>
+<button class="opt">L'épuisement des adresses IPv4</button>
+<div class="qcm-exp">Les trois causes se citent ensemble : les utilisateurs sont sortis (télétravail), les applications sont sorties (cloud), et les intrusions ont montré qu'à l'intérieur plus rien ne contrôlait la progression de l'attaquant.</div></div>
+
+<h3>Le TP</h3>
+<p>Il s'appuie sur la couche 2 de votre laboratoire. Prévoyez deux heures et demie.</p>
+
+<div class="exo"><p class="exo-n">Partie A · Prouver le problème · 40 min</p>
+<ol>
+<li>Ajoutez un second poste Linux sur le réseau <code>lan</code>, en <code>10.10.20.51</code>.</li>
+<li>Depuis Kali en quarantaine, autorisez temporairement tout le trafic sur pfSense — vous simulez le réseau plat de départ.</li>
+<li>Lancez <code>nmap -sn 10.10.20.0/24</code> depuis le poste Linux. <strong>Notez combien de machines répondent.</strong></li>
+<li>Puis <code>nmap -sV 10.10.10.10</code> : vous voyez les services du contrôleur de domaine depuis un simple poste.</li>
+<li>C'est l'état initial de la plupart des réseaux. Prenez une capture d'écran, elle servira de point de comparaison.</li>
+</ol></div>
+
+<div class="exo"><p class="exo-n">Partie B · Segmenter en observation · 50 min</p>
+<ol>
+<li>Sur pfSense, écrivez les règles de l'interface LAN dans l'ordre donné plus haut, mais <strong>en action « journaliser » et non « bloquer »</strong>.</li>
+<li>Laissez tourner pendant que vous utilisez normalement le client Windows : ouverture de session, accès à un partage, navigation.</li>
+<li>Lisez <em>Status → System Logs → Firewall</em>. Vous y voyez tout ce qui aurait été bloqué : c'est votre cartographie.</li>
+<li>Repérez au moins un flux légitime que vos règles auraient cassé. Il y en a toujours un — souvent un service Windows que vous aviez oublié.</li>
+<li>Corrigez les règles pour l'autoriser explicitement.</li>
+</ol></div>
+
+<div class="exo"><p class="exo-n">Partie C · Basculer, puis mesurer · 40 min</p>
+<ol>
+<li>Passez les règles en blocage réel.</li>
+<li>Refaites exactement les deux commandes de la partie A. <strong>Comparez les deux captures d'écran.</strong></li>
+<li>Vérifiez que le client Windows fonctionne toujours : session, partage, intranet.</li>
+<li>Sur le serveur web Linux, appliquez la configuration nftables ci-dessus et vérifiez qu'il ne peut joindre que la base.</li>
+</ol></div>
+
+<div class="exo"><p class="exo-n">Partie D · Cassez-le · 30 min</p>
+<p>Provoquez chaque panne, observez le symptôme exact, réparez sans vos notes.</p>
+<ol>
+<li>Placez le <code>block in on LAN all</code> en <strong>première</strong> position. Que se passe-t-il, et pourquoi ?</li>
+<li>Supprimez la règle qui autorise le port 88 vers le contrôleur de domaine. Que n'arrive-t-on plus à faire, et quel est le message exact côté client ?</li>
+<li>Sur le serveur Linux, retirez la ligne <code>ct state established,related accept</code> de la chaîne d'entrée. Pourquoi la connexion ne fonctionne-t-elle plus alors que la règle du port 443 est toujours là ?</li>
+</ol>
+<details><summary>Ce que vous devez pouvoir expliquer</summary>
+<div class="copie"><p class="lab">Correction</p>
+<p><u>1.</u> Plus rien ne passe. Dans un pare-feu à règles ordonnées, <u>la première règle qui correspond gagne</u> : un refus général placé en tête rend toutes les autorisations suivantes inatteignables.</p>
+<p><u>2.</u> L'ouverture de session échoue ou devient très lente. Le port 88 est celui de Kerberos : sans lui, pas de ticket, et le client bascule sur des mécanismes de repli avant d'abandonner.</p>
+<p><u>3.</u> Le paquet d'aller est accepté, mais la <u>réponse</u> appartient à une connexion établie et n'est pas couverte par une règle d'entrée. Sans suivi de connexion, il faudrait écrire une règle pour chaque sens — c'est pourquoi la ligne <code>established,related</code> vient toujours en premier.</p></div></details></div>
+
+<div class="warn"><p><b>Validation.</b> Vous savez ce TP quand vous pouvez montrer deux captures de <code>nmap -sn</code> sur le même réseau — l'une avec six machines, l'autre avec une — et expliquer en une phrase quelle règle a produit la différence.</p></div>
+
+<div class="fiche" data-bloc="reseau"><p class="lab">La fiche</p><dl>
+<dt>Définition</dt><dd><strong>Zero Trust</strong> : modèle d'architecture supprimant la confiance implicite liée à l'emplacement réseau. <strong>Micro-segmentation</strong> : découpage du réseau en zones assez fines pour qu'une machine compromise ne joigne presque rien.</dd>
+<dt>Le problème</dt><dd>Le périmètre ne protège pas contre celui qui est déjà à l'intérieur. Le trafic est-ouest n'était contrôlé par personne.</dd>
+<dt>Où ça se place</dt><dd>Partout : règles sur le pare-feu interne, sur les hôtes, ou par agent. Le point de décision est central, les points d'application sont au plus près des ressources.</dd>
+<dt>À citer</dt><dd><ul>
+<li>NIST SP 800-207, sept principes, modèle PDP / PEP</li>
+<li>Trois principes : jamais de confiance par défaut, vérification explicite, moindre privilège — plus « supposer la compromission »</li>
+<li>Nord-sud contre est-ouest, déplacement latéral</li>
+<li>Trois approches : identité, micro-segmentation, réseau défini par logiciel</li>
+<li>ZTNA contre VPN</li>
+<li>Méthode : cartographier, observer, basculer</li></ul></dd>
+<dt>Ne pas confondre</dt><dd>Zero Trust est le modèle, la micro-segmentation est une technique. Et segmentation n'est pas micro-segmentation : c'est une question de granularité.</dd>
+</dl></div>
+
+<div class="copie"><p class="lab">Ce qu'on attend sur la copie</p>
+<p>« Zero Trust est un modèle d'architecture, et non un produit. Il supprime la confiance implicite accordée à l'emplacement réseau : chaque demande est vérifiée explicitement, session par session, avec le moindre privilège, en supposant que la compromission a déjà eu lieu. Le NIST, dans le SP 800-207, sépare le point de décision, qui évalue la politique, du point d'application, qui l'exécute. La micro-segmentation est l'une des trois voies de mise en œuvre : elle découpe le réseau en zones assez fines pour contenir le déplacement latéral, c'est-à-dire le trafic est-ouest que le pare-feu de périmètre ne voyait pas. On la déploie en cartographiant d'abord les flux, puis en journalisant sans bloquer, et enfin en basculant zone par zone. »</p></div>
+</div></section>
 
 <section class="lesson" id="ad" data-bloc="identite" data-part="Identité" data-title="Active Directory et Azure AD" data-soon="1" hidden>
 <header class="lhead"><p class="eyebrow">Identité · Étape 4 sur 18</p><h2>Active Directory et Azure AD</h2></header>
@@ -575,7 +924,7 @@ interface GigabitEthernet0/1
 <div class="lbody"><div class="soon"><p><strong>Pas encore écrite.</strong></p></div></div></section>
 
 <!-- ======================= POUR FINIR ======================= -->
-<section class="lesson" id="examen" data-bloc="general" data-part="Pour finir" data-title="Ce que l'examen attend" hidden>
+<section class="lesson" id="examen" data-min="12" data-bloc="general" data-part="Pour finir" data-title="Ce que l'examen attend" hidden>
 <header class="lhead"><p class="eyebrow">Pour finir · Étape 16 sur 18<span class="meta">12 min</span></p><h2>Ce que l'examen attend</h2></header>
 <div class="lbody">
 <p class="objectif">Savoir prédire les questions à partir du sujet de l'an dernier, et savoir à quoi ressemble une réponse complète.</p>
@@ -626,7 +975,7 @@ interface GigabitEthernet0/1
 <p class="cline">Le correcteur cherche des éléments précis, il ne lit pas pour le plaisir.</p></div>
 </div></section>
 
-<section class="lesson" id="eval1" data-bloc="general" data-part="Pour finir" data-title="Évaluation chronométrée" data-min="12" hidden>
+<section class="lesson" id="eval1" data-min="12" data-bloc="general" data-part="Pour finir" data-title="Évaluation chronométrée" data-min="12" hidden>
 <header class="lhead"><p class="eyebrow">Pour finir · Étape 17 sur 18<span class="meta">12 min</span></p><h2>Évaluation chronométrée</h2></header>
 <div class="lbody">
 <p class="objectif">Répondre en temps limité, par écrit, sur ce qui est couvert jusqu'ici. L'évaluation s'étoffera à mesure que les étapes arrivent.</p>
@@ -707,6 +1056,57 @@ var SEQ = { dot1x: (function(){
   return {steps:steps,draw:draw};
 })()};
 
+SEQ.lateral = (function(){
+  var B=[{x:80,n:"Poste A",s:"compromis"},{x:206,n:"Poste B",s:"collègue"},
+         {x:332,n:"Poste C",s:"collègue"},{x:458,n:"Fichiers",s:"partage"},
+         {x:584,n:"Annuaire",s:"contrôleur"}];
+  var WALLS=[143,269,395,521], ROW=[215,245,275,305];
+  function box(b,i,state){
+    var col = i===0 ? (state>=1?'var(--c1)':'var(--line)') : 'var(--line)';
+    var w = i===0 && state>=1 ? 2.5 : 1.25;
+    return '<g><rect x="'+(b.x-60)+'" y="100" width="120" height="70" rx="6" fill="var(--surface)" stroke="'+col+'" stroke-width="'+w+'"/>'+
+      '<text x="'+b.x+'" y="128" text-anchor="middle" font-size="13" font-weight="700" fill="var(--ink)">'+b.n+'</text>'+
+      '<text x="'+b.x+'" y="150" text-anchor="middle" font-size="11" fill="'+(i===0&&state>=1?'var(--c1)':'var(--muted)')+'">'+b.s+'</text></g>';
+  }
+  var steps=[
+   {t:"Un réseau plat",d:"Cinq machines, un seul sous-réseau. Rien ne filtre entre elles : c'est la situation de départ de la plupart des réseaux."},
+   {t:"Le poste A est compromis",d:"Une pièce jointe ouverte. L'attaquant n'a ni mot de passe ni droits — juste un pied dans le réseau interne."},
+   {t:"Il atteint le poste B",d:"Un simple balayage du sous-réseau. Le pare-feu de périmètre ne voit rien : ce trafic ne sort jamais."},
+   {t:"Puis le poste C",d:"Rien ne l'arrête. Chaque machine atteinte est un nouveau point de départ."},
+   {t:"Puis le serveur de fichiers",d:"Les données de l'entreprise, accessibles depuis un poste bureautique."},
+   {t:"Puis l'annuaire",d:"L'objectif réel. À partir d'ici, l'attaquant vise les comptes à privilèges — la partie est perdue."},
+   {t:"On segmente",d:"Des règles entre chaque zone, et surtout une règle qui interdit le trafic de poste à poste."},
+   {t:"Même attaque, segmentée",d:"Le balayage ne donne rien. Le poste A ne joint plus que ce dont il a besoin pour travailler : l'annuaire, sur quatre ports."}
+  ];
+  function draw(i){
+    var s='<svg viewBox="0 0 716 360" role="img" aria-label="Deplacement lateral, avant et apres segmentation" style="width:100%;height:auto" font-family="Source Sans 3, sans-serif">'+
+      '<defs><marker id="lo" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="var(--c1)"/></marker>'+
+      '<marker id="lg" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="var(--c5)"/></marker></defs>';
+    if(i>=6) WALLS.forEach(function(x){
+      s+='<line x1="'+x+'" y1="86" x2="'+x+'" y2="330" stroke="var(--c5)" stroke-width="2" stroke-dasharray="6 5"/>';
+    });
+    B.forEach(function(b,k){ s+=box(b,k,i); });
+    if(i>=1 && i<6){
+      for(var k=1;k<=Math.min(i-1,4);k++){
+        var y=ROW[k-1];
+        s+='<line x1="80" y1="'+y+'" x2="'+(B[k].x-6)+'" y2="'+y+'" stroke="var(--c1)" stroke-width="2" marker-end="url(#lo)"/>'+
+           '<text x="'+((80+B[k].x)/2)+'" y="'+(y-7)+'" text-anchor="middle" font-size="11" fill="var(--c1)">atteint</text>';
+      }
+    }
+    if(i>=7){
+      for(var k=0;k<3;k++){
+        var y=ROW[k];
+        s+='<line x1="80" y1="'+y+'" x2="131" y2="'+y+'" stroke="var(--muted)" stroke-width="2"/>'+
+           '<text x="143" y="'+(y+5)+'" text-anchor="middle" font-size="16" font-weight="700" fill="var(--c1)">✕</text>';
+      }
+      s+='<line x1="80" y1="'+ROW[3]+'" x2="'+(B[4].x-6)+'" y2="'+ROW[3]+'" stroke="var(--c5)" stroke-width="2" marker-end="url(#lg)"/>'+
+         '<text x="'+((80+B[4].x)/2)+'" y="'+(ROW[3]-7)+'" text-anchor="middle" font-size="11" fill="var(--c5)">autorisé : DNS, Kerberos, LDAP, SMB</text>';
+    }
+    return s+'</svg>';
+  }
+  return {steps:steps,draw:draw};
+})();
+
 document.querySelectorAll('.seq').forEach(function(box){
   var spec=SEQ[box.dataset.seq]; if(!spec) return;
   var fig=document.createElement('div');
@@ -768,6 +1168,17 @@ lessons.forEach(function(s){
   html+='<li><a href="#'+s.id+'" data-id="'+s.id+'" class="'+(s.dataset.soon?'soon':'')+'">'+
         '<span class="nav-n">'+num+'</span><span class="ttl">'+s.dataset.title+'</span></a></li>';
 });
+// en-tête de chaque étape, construit à partir des attributs : insérer une station ne renumérote rien
+(function(){
+  var tot=lessons.length-1, k=0;
+  lessons.forEach(function(s){
+    var eb=s.querySelector('.eyebrow'); if(!eb) return;
+    if(s.id==='accueil'){ eb.textContent='Bienvenue'; return; }
+    k++;
+    var txt=(s.dataset.part||'')+' · Étape '+k+' sur '+tot;
+    eb.innerHTML=txt+(s.dataset.min?'<span class="meta">'+s.dataset.min+' min</span>':'');
+  });
+})();
 nav.innerHTML=html+'</ol>';
 var links=Array.prototype.slice.call(nav.querySelectorAll('a'));
 links.forEach(function(a){ a.dataset.num=a.querySelector('.nav-n').textContent; });
