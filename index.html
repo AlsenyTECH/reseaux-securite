@@ -1,0 +1,858 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Parcours Réseau &amp; Sécurité — semestre 2</title>
+<meta name="description" content="Les quatorze sujets du semestre 2 : le mécanisme, ce que l'examen attend, des QCM corrigés et des TP. Fonctionne hors connexion.">
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Polices servies localement : le site fonctionne sans connexion. */
+@font-face{font-family:'Source Sans 3';font-weight:400;font-display:swap;src:url(assets/fonts/source-sans-3-latin-400-normal.woff2) format('woff2')}
+@font-face{font-family:'Source Sans 3';font-weight:600;font-display:swap;src:url(assets/fonts/source-sans-3-latin-600-normal.woff2) format('woff2')}
+@font-face{font-family:'Source Sans 3';font-weight:700;font-display:swap;src:url(assets/fonts/source-sans-3-latin-700-normal.woff2) format('woff2')}
+@font-face{font-family:'Caveat';font-weight:500;font-display:swap;src:url(assets/fonts/caveat-latin-500-normal.woff2) format('woff2')}
+@font-face{font-family:'Caveat';font-weight:700;font-display:swap;src:url(assets/fonts/caveat-latin-700-normal.woff2) format('woff2')}
+@font-face{font-family:'Kalam';font-weight:400;font-display:swap;src:url(assets/fonts/kalam-latin-400-normal.woff2) format('woff2')}
+@font-face{font-family:'Kalam';font-weight:700;font-display:swap;src:url(assets/fonts/kalam-latin-700-normal.woff2) format('woff2')}
+
+/* Cahier de laboratoire. Clair : papier quadrillé, une couleur par bloc du trajet, stylo vert du prof,
+   terminal sombre pour ce qui se tape. Sombre : la paillasse de nuit. */
+:root{
+  --paper:#f5f8fb; --surface:#ffffff; --ink:#16212e; --muted:#58677a; --line:#d6dfe9; --grid:#e4ebf3;
+  --pen:#15609e; --pen-bg:#eaf2f9; --prof:#0a7441; --prof-bg:#e9f5ee; --btn-fg:#ffffff;
+  --c1:#b4322a; --c2:#a9630f; --c3:#15609e; --c4:#6d3791; --c5:#0b7659; --c0:#16212e;
+  --term-bg:#101821; --term-fg:#d4e0ea; --term-dim:#7b90a3; --term-g:#6cc99b; --term-y:#e0b544;
+  --f-body:'Source Sans 3',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --f-hand:'Caveat','Segoe Print',cursive;
+  --f-prof:'Kalam','Comic Sans MS',cursive;
+  --f-mono:ui-monospace,SFMono-Regular,'SF Mono',Menlo,Consolas,'Liberation Mono',monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){
+  --paper:#0e151e; --surface:#161f2a; --ink:#e8eef5; --muted:#9aabbd; --line:#2b3947; --grid:#1a2330;
+  --pen:#7fb6e8; --pen-bg:#17273a; --prof:#7fd9a6; --prof-bg:#13301f; --btn-fg:#0d1620;
+  --c1:#f09186; --c2:#e0a558; --c3:#7fb6e8; --c4:#c79ae6; --c5:#6fd0ae; --c0:#e8eef5;
+  --term-bg:#0a1119; color-scheme:dark;
+}}
+:root[data-theme=dark]{
+  --paper:#0e151e; --surface:#161f2a; --ink:#e8eef5; --muted:#9aabbd; --line:#2b3947; --grid:#1a2330;
+  --pen:#7fb6e8; --pen-bg:#17273a; --prof:#7fd9a6; --prof-bg:#13301f; --btn-fg:#0d1620;
+  --c1:#f09186; --c2:#e0a558; --c3:#7fb6e8; --c4:#c79ae6; --c5:#6fd0ae; --c0:#e8eef5;
+  --term-bg:#0a1119; color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{height:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:17px;line-height:1.6}
+a{color:var(--pen)}
+button{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--pen);outline-offset:2px}
+
+/* bloc → couleur */
+[data-bloc=acces]{--bc:var(--c1)} [data-bloc=reseau]{--bc:var(--c2)}
+[data-bloc=identite]{--bc:var(--c3)} [data-bloc=application]{--bc:var(--c4)}
+[data-bloc=surveillance]{--bc:var(--c5)} [data-bloc=""],[data-bloc=general]{--bc:var(--c0)}
+
+/* ---------- chrome ---------- */
+.topbar{position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:12px;
+  padding:0 max(14px,env(safe-area-inset-right,0px)) 0 max(14px,env(safe-area-inset-left,0px));
+  height:54px;background:var(--surface);border-bottom:1px solid var(--line)}
+.brand{font-weight:700;font-size:17px;line-height:1.1}
+.brand-sub{display:block;font-weight:400;font-size:12.5px;color:var(--muted)}
+.topbar .sp{flex:1}
+#mini-prog{font-size:14px;color:var(--muted);font-variant-numeric:tabular-nums}
+.icbtn{background:none;border:1px solid var(--line);border-radius:6px;padding:5px 10px;cursor:pointer;color:var(--ink)}
+#menu-btn{display:none}
+.scrim{position:fixed;inset:54px 0 0;background:rgba(10,18,28,.45);z-index:19;border:0}
+
+.shell{display:flex;align-items:flex-start}
+.side{width:286px;flex:0 0 286px;position:sticky;top:54px;height:calc(100vh - 54px);overflow-y:auto;
+  background:var(--surface);border-right:1px solid var(--line);padding:16px 0 40px;z-index:20}
+.right{flex:1;min-width:0}
+
+.prog{padding:0 18px 14px}
+.prog-bar{height:6px;background:var(--line);border-radius:3px;overflow:hidden}
+.prog-fill{display:block;height:100%;width:0;background:var(--pen);transition:width .3s}
+.prog-txt{margin:7px 0 0;font-size:13px;color:var(--muted)}
+.nav-part{margin:16px 0 4px;padding:0 18px;font-size:12.5px;font-weight:700;letter-spacing:.06em;
+  text-transform:uppercase;color:var(--bc,var(--muted))}
+.nav-list{list-style:none;margin:0;padding:0}
+.nav-list a{display:flex;gap:10px;align-items:baseline;padding:6px 18px;text-decoration:none;color:var(--ink);font-size:15px;line-height:1.3}
+.nav-list a:hover{background:var(--pen-bg)}
+.nav-list a[aria-current]{background:var(--pen-bg);font-weight:600;box-shadow:inset 3px 0 0 var(--pen)}
+.nav-n{flex:0 0 22px;font-size:12.5px;font-weight:700;color:var(--muted);font-variant-numeric:tabular-nums}
+.nav-list a.done .nav-n{color:var(--prof)}
+.nav-list a.soon{color:var(--muted)}
+.nav-list a.soon .ttl::after{content:" · à venir";font-size:12px;color:var(--muted)}
+#reset{margin:18px 18px 0;width:calc(100% - 36px);font-size:13.5px;color:var(--muted);
+  background:none;border:1px solid var(--line);border-radius:6px;padding:7px;cursor:pointer}
+#reset.warn{color:var(--c1);border-color:var(--c1)}
+
+/* ---------- étape ---------- */
+.lesson{max-width:880px;margin:0 auto;padding-left:max(22px,env(safe-area-inset-left,0px));padding-right:max(22px,env(safe-area-inset-right,0px))}
+.lhead{padding:30px 0 16px;border-bottom:2px solid var(--bc);
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:22px 22px}
+.eyebrow{margin:0 0 5px;font-size:.84rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);
+  font-weight:700;display:flex;gap:12px;flex-wrap:wrap;align-items:baseline}
+.eyebrow .meta{letter-spacing:0;text-transform:none;font-weight:600;color:var(--prof)}
+.lhead h2{margin:0;font-size:clamp(1.9rem,4.4vw,2.5rem);line-height:1.08;color:var(--bc);text-wrap:balance}
+.lbody{display:flex;flex-direction:column;gap:14px;padding-top:18px}
+.lbody>p,.lbody>ul,.lbody>ol{margin:0;max-width:70ch}
+.lbody ul,.lbody ol{padding-left:1.3em}
+.lbody li{margin:5px 0}
+.lbody h3{font-size:1.24rem;margin:16px 0 0;line-height:1.25;text-wrap:balance}
+.objectif{font-size:1.06rem;color:var(--muted);font-weight:600}
+.objectif::before{content:"Objectif : ";color:var(--bc);font-weight:700}
+.lab{margin:0 0 6px;font-size:.78rem;letter-spacing:.07em;text-transform:uppercase;font-weight:700;font-family:var(--f-body)}
+
+.retenir{border:2px solid var(--bc);border-radius:4px;background:var(--surface);padding:12px 16px}
+.retenir .lab{color:var(--bc)}
+.retenir p,.retenir ul{margin:6px 0}
+.prof{background:var(--prof-bg);border-radius:4px;padding:12px 16px;color:var(--prof);
+  font-family:var(--f-prof);font-size:1rem;line-height:1.55}
+.prof .lab{color:var(--prof);font-family:var(--f-body)}
+.prof p{margin:5px 0}
+.copie{border:1px solid var(--line);border-radius:3px;padding:14px 16px;color:var(--pen);
+  font-family:var(--f-hand);font-size:1.4rem;line-height:1.45;background-color:var(--surface);
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:22px 22px}
+.copie .lab{color:var(--muted);font-family:var(--f-body);font-size:.78rem}
+.copie p{margin:5px 0}
+.term{background:var(--term-bg);color:var(--term-fg);border-radius:5px;padding:13px 15px;
+  font-family:var(--f-mono);font-size:13.5px;line-height:1.65;overflow-x:auto;white-space:pre;border:1px solid var(--line)}
+.term .c{color:var(--term-dim)} .term .g{color:var(--term-g)} .term .y{color:var(--term-y)}
+code{font-family:var(--f-mono);font-size:.9em;background:var(--pen-bg);padding:1px 5px;border-radius:3px}
+
+.confusion{border:1px solid var(--line);border-left:5px solid var(--c1);border-radius:4px;background:var(--surface);padding:14px 16px}
+.confusion .lab{color:var(--c1)}
+.cpair{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:4px 0 10px}
+.cpair>div{border:1px solid var(--line);border-radius:4px;padding:10px 12px}
+.cpair h4{margin:0 0 4px;font-size:1rem}
+.cpair p{margin:0;font-size:.95rem;color:var(--muted)}
+.cline{margin:0;font-weight:600}
+.cline::before{content:"La phrase qui tranche : ";font-weight:700;color:var(--c1)}
+
+.fiche{border:2px solid var(--bc);border-radius:4px;background:var(--surface);padding:0;overflow:hidden}
+.fiche .lab{background:var(--bc);color:var(--btn-fg);margin:0;padding:6px 16px}
+.fiche dl{margin:0;padding:14px 16px;display:grid;grid-template-columns:142px 1fr;gap:9px 16px}
+.fiche dt{font-size:.78rem;letter-spacing:.06em;text-transform:uppercase;font-weight:700;color:var(--muted);padding-top:3px}
+.fiche dd{margin:0}
+.fiche dd ul{margin:0;padding-left:1.1em}
+
+/* ---------- QCM ---------- */
+.qcm{border:1px solid var(--line);border-radius:4px;background:var(--surface);padding:14px 16px}
+.qcm-n{margin:0 0 6px;font-size:.8rem;letter-spacing:.06em;text-transform:uppercase;font-weight:700;color:var(--bc)}
+.qcm-q{margin:0 0 10px;font-weight:600}
+.opt{display:block;width:100%;text-align:left;background:var(--paper);border:1.5px solid var(--line);
+  border-radius:5px;padding:9px 12px;margin-bottom:7px;cursor:pointer}
+.opt:hover:not([disabled]){border-color:var(--pen)}
+.opt.good{border-color:var(--prof);background:var(--prof-bg)}
+.opt.bad{border-color:var(--c1)}
+.opt[disabled]{cursor:default}
+.qcm-exp{display:none;border-top:1px solid var(--line);margin-top:10px;padding-top:10px;font-size:.96rem;color:var(--muted)}
+.qcm-exp.on{display:block}
+.qcm-exp b{color:var(--ink)}
+.qcm-score{margin:14px 0 0;padding:12px 16px;border-radius:4px;background:var(--pen-bg);font-weight:600;display:none}
+.qcm-score.on{display:block}
+
+/* ---------- vidéo ---------- */
+.video{margin:0;display:flex;flex-direction:column;gap:7px}
+.video video{width:100%;aspect-ratio:16/9;background:var(--term-bg);border:1px solid var(--line);border-radius:5px;display:block}
+.video figcaption{font-size:.95rem;color:var(--muted);display:flex;gap:9px;flex-wrap:wrap;align-items:baseline}
+.tag{font-size:.72rem;letter-spacing:.07em;text-transform:uppercase;font-weight:700;color:var(--btn-fg);
+  background:var(--bc);padding:2px 8px;border-radius:3px}
+.dur{font-variant-numeric:tabular-nums}
+.hint{margin:0;font-size:.9rem;color:var(--muted)}
+
+/* ---------- séquence animée ---------- */
+.seq{border:1px solid var(--line);border-radius:4px;background:var(--surface);padding:14px 16px}
+.seq svg{width:100%;height:auto;display:block}
+.seq-ctl{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin-top:12px}
+.seq-cap{flex:1;min-width:210px;font-size:.95rem;color:var(--muted)}
+.seq-cap b{color:var(--ink)}
+
+/* ---------- exercices, chrono, boutons ---------- */
+.exo{border:1px solid var(--line);border-radius:4px;background:var(--surface);padding:14px 16px}
+.exo-n{margin:0 0 6px;font-size:.8rem;letter-spacing:.06em;text-transform:uppercase;font-weight:700;color:var(--bc)}
+.exo summary{cursor:pointer;font-weight:700;color:var(--pen);padding:6px 0;width:max-content}
+.exo details>*+*{margin-top:10px}
+.chrono{border:2px solid var(--pen);border-radius:4px;background:var(--pen-bg);padding:14px 16px;
+  display:flex;flex-direction:column;gap:7px;align-items:flex-start}
+.chrono-t{margin:0;font-size:3rem;line-height:1;font-weight:700;font-variant-numeric:tabular-nums;color:var(--pen)}
+.chrono-b{display:flex;gap:10px;flex-wrap:wrap}
+.chrono-end{margin:0;font-weight:700;color:var(--c1)}
+.btn{border:1.5px solid var(--pen);background:var(--pen);color:var(--btn-fg);font-weight:700;
+  padding:9px 15px;border-radius:5px;cursor:pointer;text-decoration:none;display:inline-block;line-height:1.2}
+.btn.ghost{background:transparent;color:var(--pen)}
+.btn[disabled]{opacity:.45;cursor:default}
+.pager{max-width:880px;margin:32px auto 60px;display:flex;gap:12px;flex-wrap:wrap;
+  justify-content:space-between;align-items:center;
+  padding-left:max(22px,env(safe-area-inset-left,0px));padding-right:max(22px,env(safe-area-inset-right,0px))}
+.done-note{margin:0;color:var(--prof);font-weight:600;font-size:.95rem}
+.soon{border:1px dashed var(--line);border-radius:4px;padding:26px;text-align:center;color:var(--muted);background:var(--surface)}
+.howto{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:12px}
+.howto>div{border:1px solid var(--line);border-radius:4px;background:var(--surface);padding:12px 14px}
+.howto p{margin:0}
+.howto .num{font-family:var(--f-hand);font-weight:700;font-size:2rem;line-height:1;color:var(--pen);margin-bottom:2px}
+.table-wrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:460px;font-size:.97rem;background:var(--surface)}
+th,td{border:1px solid var(--line);padding:8px 11px;text-align:left;vertical-align:top}
+th{background:var(--pen-bg);font-weight:700}
+
+@media (max-width:900px){
+  #menu-btn{display:block}
+  .side{position:fixed;top:54px;left:0;bottom:0;transform:translateX(-100%);transition:transform .2s;box-shadow:2px 0 16px rgba(0,0,0,.2)}
+  .side.open{transform:none}
+  .cpair{grid-template-columns:1fr}
+  .fiche dl{grid-template-columns:1fr;gap:2px}
+  .fiche dt{padding-top:11px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+@media print{.topbar,.side,.pager,.scrim{display:none!important}.lesson{max-width:none}.lesson[hidden]{display:block!important}}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <button class="icbtn" id="menu-btn" aria-expanded="false" aria-label="Sommaire">☰</button>
+  <div class="brand">Réseau &amp; Sécurité<span class="brand-sub">Semestre 2 · les 14 sujets</span></div>
+  <div class="sp"></div>
+  <span id="mini-prog">0 / 18</span>
+  <button class="icbtn" id="theme" aria-label="Changer le thème">◐</button>
+</header>
+<button class="scrim" id="scrim" hidden aria-label="Fermer le sommaire"></button>
+
+<div class="shell">
+<nav class="side" id="side" aria-label="Sommaire">
+  <div class="prog">
+    <div class="prog-bar"><span class="prog-fill" id="prog-fill"></span></div>
+    <p class="prog-txt" id="prog-txt">0 étape validée sur 18</p>
+  </div>
+  <div id="nav"></div>
+  <button id="reset" hidden>Remettre ma progression à zéro</button>
+</nav>
+
+<div class="right">
+
+<!-- ======================= ACCUEIL ======================= -->
+<section class="lesson" id="accueil" data-bloc="general" data-part="" data-title="Comment utiliser ce parcours" hidden>
+<header class="lhead"><p class="eyebrow">Bienvenue</p><h2>Comment utiliser ce parcours</h2></header>
+<div class="lbody">
+<p class="objectif">Maîtriser les quatorze sujets d'exposé du semestre 2, et arriver à l'examen en sachant répondre, pas en espérant reconnaître.</p>
+<p>Les quatorze sujets ne sont pas une liste d'acronymes. Ils décrivent <strong>un seul trajet</strong> : un utilisateur qui essaie d'atteindre une application, et tout ce qui se dresse entre les deux. Les étapes suivent ce trajet, pas l'ordre alphabétique de la liste de la promotion.</p>
+<div class="howto">
+  <div><p class="num">1</p><p>Lis le mécanisme. Chaque étape commence par un objectif et une situation concrète.</p></div>
+  <div><p class="num">2</p><p>Fais le QCM sans relire. Il corrige et explique immédiatement.</p></div>
+  <div><p class="num">3</p><p>Monte le TP sur tes machines, puis casse-le volontairement.</p></div>
+  <div><p class="num">4</p><p>Apprends la fiche et la paire à ne pas confondre. C'est ce qui est noté.</p></div>
+</div>
+<div class="prof"><p class="lab">Un mot avant de commencer</p>
+<p>La tentation est d'attendre la fin du semestre pour tout réviser. Ne le fais pas : tu te retrouverais avec quatorze sujets jamais pratiqués et trois semaines devant toi. Traite chaque étape dans les sept jours où l'exposé correspondant passe en cours.</p>
+<p>Et pour chaque exposé que tu écoutes, pose une question précise. L'orateur précisera ce qu'il a survolé, et l'enseignant te repérera.</p></div>
+<p>Le bouton en bas de chaque étape la valide et passe à la suivante. Ta progression reste dans ce navigateur. Le site fonctionne hors connexion : tu peux le télécharger et l'ouvrir sans réseau.</p>
+</div></section>
+
+<!-- ======================= 1 · FIL CONDUCTEUR ======================= -->
+<section class="lesson" id="fil" data-bloc="general" data-part="Vue d'ensemble" data-title="Le fil conducteur" hidden>
+<header class="lhead"><p class="eyebrow">Vue d'ensemble · Étape 1 sur 18<span class="meta">12 min</span></p><h2>Le fil conducteur</h2></header>
+<div class="lbody">
+<p class="objectif">Savoir redessiner le trajet de mémoire et y placer les quatorze sujets.</p>
+
+<h3>Le trajet, en une image</h3>
+<div style="background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:14px">
+<svg viewBox="0 0 760 360" role="img" aria-label="Huit sujets jalonnent le trajet, cinq l'observent et y repondent" style="width:100%;height:auto" font-family="Source Sans 3, sans-serif" font-size="13">
+<defs><marker id="fa" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="currentColor"/></marker></defs>
+<g fill="none" stroke="currentColor" stroke-width="1.25" opacity=".55" color="var(--muted)">
+<path d="M140 160H173" marker-end="url(#fa)"/><path d="M289 160H322" marker-end="url(#fa)"/>
+<path d="M438 160H471" marker-end="url(#fa)"/><path d="M587 160H620" marker-end="url(#fa)"/>
+<path d="M82 212V264" marker-end="url(#fa)"/><path d="M231 212V264" marker-end="url(#fa)"/>
+<path d="M380 212V264" marker-end="url(#fa)"/><path d="M529 212V264" marker-end="url(#fa)"/>
+<path d="M678 212V264" marker-end="url(#fa)"/></g>
+<g fill="none" stroke-width="2">
+<rect x="24" y="108" width="116" height="104" rx="6" stroke="var(--muted)" stroke-width="1.25"/>
+<rect x="173" y="108" width="116" height="104" rx="6" stroke="var(--c1)"/>
+<rect x="322" y="108" width="116" height="104" rx="6" stroke="var(--c2)"/>
+<rect x="471" y="108" width="116" height="104" rx="6" stroke="var(--c3)"/>
+<rect x="620" y="108" width="116" height="104" rx="6" stroke="var(--c4)"/>
+<rect x="24" y="264" width="712" height="72" rx="6" stroke="var(--c5)" fill="var(--c5)" fill-opacity=".1"/></g>
+<g fill="var(--ink)" font-weight="700" text-anchor="middle">
+<text x="82" y="134">Poste</text><text x="231" y="134">Accès réseau</text><text x="380" y="134">Réseau</text>
+<text x="529" y="134">Identité</text><text x="678" y="134">Application</text><text x="380" y="292">La surveillance et la réponse</text></g>
+<g fill="var(--muted)" font-size="11.5" text-anchor="middle">
+<text x="82" y="152">L'utilisateur</text><text x="82" y="168">et sa machine</text>
+<text x="231" y="152">NAC</text><text x="231" y="168">PacketFence</text><text x="231" y="184">802.1X</text>
+<text x="380" y="152">Micro-</text><text x="380" y="168">segmentation</text><text x="380" y="184">Zero Trust</text>
+<text x="529" y="152">AD, Azure AD</text><text x="529" y="168">PKI · IAM, PAM</text><text x="529" y="184">SSO</text>
+<text x="678" y="152">WAF, proxy</text><text x="678" y="168">Cloud security</text>
+<text x="380" y="312">IDS / IPS · Snort · Wazuh · SIEM, EDR, XDR · CTI, SOAR</text></g>
+</svg></div>
+<p>Huit sujets jalonnent le trajet. Cinq l'observent de bout en bout. Le quatorzième, <strong>TP Active Directory</strong>, n'est pas un concept mais une séance pratique au service du bloc identité.</p>
+
+<h3>Chaque étape pose une question différente</h3>
+<div class="table-wrap"><table>
+<tr><th style="width:132px">Étape</th><th>La question posée</th></tr>
+<tr><td><strong>Accès réseau</strong></td><td>Cette machine a-t-elle le droit d'être sur le réseau ? Seul contrôle qui agit <em>avant</em> l'attribution d'une adresse IP.</td></tr>
+<tr><td><strong>Réseau</strong></td><td>Maintenant qu'elle est dedans, jusqu'où peut-elle aller ? On suppose qu'elle est déjà compromise.</td></tr>
+<tr><td><strong>Identité</strong></td><td>Qui est derrière cette machine, et qu'a-t-il le droit de faire ? Quatre sujets : c'est devenu le vrai périmètre.</td></tr>
+<tr><td><strong>Application</strong></td><td>La requête est-elle légitime ? Et si l'application n'est plus chez vous ?</td></tr>
+<tr><td><strong>Surveillance</strong></td><td>Comment sait-on qu'il se passe quelque chose, et que fait-on ensuite ?</td></tr>
+</table></div>
+
+<h3>Pourquoi le périmètre est mort</h3>
+<p>Le semestre 1 défendait une frontière : un pare-feu à l'entrée, du chiffrement pour ce qui la traverse, et un intérieur réputé sûr. Le modèle tenait tant que les utilisateurs étaient au bureau et les serveurs dans la salle machine.</p>
+<p>Trois choses l'ont fait tomber. Le <strong>télétravail</strong> a mis les utilisateurs dehors. Le <strong>cloud</strong> a mis les applications dehors. Et les intrusions réussies ont montré qu'un attaquant parvenu à l'intérieur <strong>circulait librement</strong>, parce que plus rien ne le contrôlait.</p>
+<p>Le semestre 2 en tire la conséquence : il n'y a plus d'intérieur. On vérifie chaque demande, de chaque utilisateur, pour chaque ressource.</p>
+
+<div class="retenir"><p class="lab">À connaître par cœur</p>
+<p><strong>Zero Trust, trois principes</strong> (NIST SP 800-207) : ne jamais faire confiance par défaut · vérifier explicitement à chaque demande · appliquer le moindre privilège. Souvent complété par : supposer que la compromission a déjà eu lieu.</p>
+<p><strong>Nord-sud</strong> : entre l'extérieur et l'intérieur, ce que filtre le pare-feu. <strong>Est-ouest</strong> : entre machines internes, par où un intrus se déplace latéralement.</p></div>
+
+<div class="prof"><p class="lab">Pour retenir</p>
+<p>Le pare-feu protège la frontière. La micro-segmentation protège contre celui qui l'a déjà franchie. Si tu ne retiens qu'une phrase de tout le semestre, prends celle-là.</p></div>
+
+<div class="confusion"><p class="lab">Ne pas confondre</p>
+<div class="cpair">
+<div><h4>Zero Trust</h4><p>Un modèle, une façon de penser l'architecture. Rien à installer.</p></div>
+<div><h4>Micro-segmentation</h4><p>Une technique parmi d'autres pour le mettre en œuvre côté réseau.</p></div>
+</div>
+<p class="cline">Zero Trust se décide, la micro-segmentation se configure.</p></div>
+
+<h3>Vérifie que tu as compris</h3>
+<div class="qcm" data-answer="1"><p class="qcm-n">Question 1</p>
+<p class="qcm-q">Quel contrôle agit <em>avant</em> qu'une machine reçoive une adresse IP ?</p>
+<button class="opt">Le pare-feu nouvelle génération</button><button class="opt">Le NAC</button>
+<button class="opt">Le WAF</button><button class="opt">Le SIEM</button>
+<div class="qcm-exp">Le NAC décide de l'admission au niveau 2, avant le DHCP. Tous les autres mécanismes du semestre interviennent une fois la machine déjà sur le réseau.</div></div>
+
+<div class="qcm" data-answer="1"><p class="qcm-n">Question 2</p>
+<p class="qcm-q">Le trafic « est-ouest » désigne :</p>
+<button class="opt">Le trafic entrant depuis Internet</button><button class="opt">Le trafic entre machines internes</button>
+<button class="opt">Le trafic chiffré</button><button class="opt">Le trafic entre deux continents</button>
+<div class="qcm-exp">Est-ouest = latéral. C'est précisément ce que le pare-feu de périmètre ne voit pas, et ce que la micro-segmentation vient contrôler.</div></div>
+
+<div class="qcm" data-answer="2"><p class="qcm-n">Question 3</p>
+<p class="qcm-q">Pourquoi le modèle du périmètre s'est-il effondré ?</p>
+<button class="opt">Les pare-feu sont devenus trop chers</button><button class="opt">Le chiffrement l'a rendu inutile</button>
+<button class="opt">Le télétravail et le cloud ont mis utilisateurs et applications dehors</button><button class="opt">Les adresses IPv4 se sont épuisées</button>
+<div class="qcm-exp">Trois causes à citer ensemble : les utilisateurs sont sortis, les applications sont sorties, et les intrusions ont montré qu'à l'intérieur rien ne contrôlait le déplacement latéral.</div></div>
+
+<div class="qcm" data-answer="2"><p class="qcm-n">Question 4</p>
+<p class="qcm-q">Combien des quatorze sujets portent sur la surveillance et la réponse ?</p>
+<button class="opt">Deux</button><button class="opt">Trois</button><button class="opt">Cinq</button><button class="opt">Huit</button>
+<div class="qcm-exp">Cinq : IDS/IPS, Snort, Wazuh, SIEM-EDR-XDR, et CTI et SOAR. Plus du tiers du semestre.</div></div>
+
+<div class="fiche" data-bloc="general"><p class="lab">La fiche</p><dl>
+<dt>Définition</dt><dd>Les quatorze sujets décrivent une architecture unique : le trajet d'un utilisateur vers une application, et la couche qui l'observe.</dd>
+<dt>Le problème</dt><dd>Le modèle du périmètre ne tient plus depuis que les utilisateurs et les applications sont dehors.</dd>
+<dt>Où ça se place</dt><dd>Quatre étapes successives — accès réseau, réseau, identité, application — plus une couche transversale de surveillance et de réponse.</dd>
+<dt>À citer</dt><dd><ul><li>NIST SP 800-207</li><li>Les trois principes Zero Trust</li><li>Nord-sud contre est-ouest</li><li>Huit sujets sur le trajet, cinq en surveillance, un en TP</li></ul></dd>
+<dt>Ne pas confondre</dt><dd>Zero Trust est un modèle ; la micro-segmentation est une technique.</dd>
+</dl></div>
+
+<div class="copie"><p class="lab">Ce qu'on attend sur la copie</p>
+<p>« Le modèle du périmètre supposait un intérieur sûr. Le télétravail et le cloud ont placé utilisateurs et applications hors de ce périmètre, et les intrusions ont montré qu'un attaquant interne se déplaçait sans contrôle. Le Zero Trust y répond en supprimant la confiance implicite : chaque demande est vérifiée explicitement, avec le moindre privilège, en supposant la compromission. »</p></div>
+</div></section>
+
+<!-- ======================= 2 · ACCÈS RÉSEAU ======================= -->
+<section class="lesson" id="nac" data-bloc="acces" data-part="Accès réseau" data-title="NAC, PacketFence, 802.1X" hidden>
+<header class="lhead"><p class="eyebrow">Accès réseau · Étape 2 sur 18<span class="meta">25 min</span></p><h2>NAC, PacketFence, 802.1X</h2></header>
+<div class="lbody">
+<p class="objectif">Expliquer ce qui se passe entre le moment où le câble est branché et celui où la machine obtient une adresse.</p>
+
+<p>Vous branchez un câble dans une prise murale de l'université. Trente secondes plus tard vous avez une adresse IP et vous êtes sur le réseau. <strong>Qui a vérifié que vous en aviez le droit ?</strong></p>
+
+<h3>Ce que fait un NAC</h3>
+<p>Le contrôle d'admission au réseau décide de trois choses :</p>
+<ul>
+<li><strong>Admettre ou refuser</strong> la machine.</li>
+<li><strong>La placer dans le bon VLAN</strong> selon qui s'authentifie. Le même port physique peut mener au réseau des professeurs ou à celui des étudiants.</li>
+<li><strong>Vérifier son état de santé</strong> — antivirus, correctifs — et la renvoyer en quarantaine si besoin.</li>
+</ul>
+
+<h3>802.1X : les trois rôles</h3>
+<p>L'erreur classique est de croire que le switch décide. Il ne décide rien : il relaie.</p>
+<div class="table-wrap"><table>
+<tr><th style="width:168px">Rôle</th><th style="width:150px">Qui le tient</th><th>Ce qu'il fait</th></tr>
+<tr><td><strong>Demandeur</strong><br><span style="font-size:.86rem;color:var(--muted)">supplicant</span></td><td>Le poste</td><td>Fournit l'identité et la preuve.</td></tr>
+<tr><td><strong>Contrôleur</strong><br><span style="font-size:.86rem;color:var(--muted)">authenticator</span></td><td>Le switch, la borne Wi-Fi</td><td>Garde le port fermé et relaie. <strong>Ne décide pas.</strong></td></tr>
+<tr><td><strong>Serveur d'authentification</strong></td><td>Un serveur RADIUS</td><td>Vérifie et décide. Renvoie l'acceptation et le VLAN.</td></tr>
+</table></div>
+<p>Deux protocoles coexistent : <strong>EAPOL</strong> entre le poste et le switch, <strong>RADIUS</strong> entre le switch et le serveur. Le switch traduit l'un vers l'autre.</p>
+
+<figure class="video">
+<video controls preload="metadata" playsinline src="videos/02-acces-reseau-8021x.mp4"></video>
+<figcaption><span class="tag">Vidéo</span> L'échange 802.1X, message par message <span class="dur">2 min 50</span></figcaption>
+<p class="hint">Sur téléphone : passe en plein écran et tourne l'écran. Le texte est aussi à l'image, la vidéo se suit sans le son.</p>
+</figure>
+
+<p>Puis reprenez l'échange à votre rythme : avancez message par message et regardez le port s'ouvrir à la fin.</p>
+<div class="seq" data-seq="dot1x"></div>
+
+<h3>Les méthodes EAP</h3>
+<div class="table-wrap"><table>
+<tr><th style="width:120px">Méthode</th><th>Comment</th><th style="width:33%">Robustesse</th></tr>
+<tr><td><strong>EAP-TLS</strong></td><td>Certificat des deux côtés. Aucun mot de passe ne circule.</td><td>La plus forte. Exige une PKI — d'où l'étape 5.</td></tr>
+<tr><td><strong>PEAP</strong></td><td>Tunnel TLS avec le certificat du serveur seul, puis mot de passe dedans.</td><td>Bonne, bien plus simple à déployer. Le choix courant.</td></tr>
+<tr><td><strong>EAP-TTLS</strong></td><td>Même principe, plus souple sur ce qui passe dans le tunnel.</td><td>Équivalente à PEAP.</td></tr>
+</table></div>
+
+<h3>Ce qui ne sait pas s'authentifier</h3>
+<ul>
+<li><strong>MAB</strong> — le switch soumet l'adresse MAC au RADIUS comme identifiant. Faible : une adresse MAC se falsifie en une commande. Réservé à des VLAN très restreints.</li>
+<li><strong>Le portail captif</strong> — pour les invités : réseau isolé, toute navigation redirigée vers une page d'authentification.</li>
+</ul>
+
+<h3>La posture et la quarantaine</h3>
+<p>Une machine qui échoue au contrôle de santé n'est pas rejetée : elle est placée dans un <strong>VLAN de quarantaine</strong> d'où elle ne joint que le serveur de mises à jour, se met en conformité, puis est réadmise. C'est le moindre privilège appliqué à l'admission.</p>
+
+<h3>La configuration, côté switch</h3>
+<div class="term"><span class="c"># Cisco — activer 802.1X sur un port d'accès</span>
+aaa new-model
+aaa authentication dot1x default group radius
+dot1x system-auth-control
+radius server RAD
+ address ipv4 192.168.10.10 auth-port 1812
+ key <span class="y">motdepasse-partage</span>
+!
+interface GigabitEthernet0/1
+ switchport mode access
+ authentication port-control <span class="g">auto</span>
+ dot1x pae authenticator</div>
+<p>La ligne qui compte est <code>authentication port-control auto</code> : elle met le port en état non autorisé tant que l'authentification n'a pas abouti. Avec <code>force-authorized</code>, le port s'ouvre quoi qu'il arrive — c'est le réglage par défaut, et c'est pourquoi un réseau sans NAC laisse entrer n'importe qui.</p>
+
+<div class="retenir"><p class="lab">À connaître par cœur</p>
+<p><strong>Trois rôles 802.1X</strong> : demandeur (poste) · contrôleur (switch) · serveur d'authentification (RADIUS).</p>
+<p><strong>Deux protocoles</strong> : EAPOL poste ↔ switch, RADIUS switch ↔ serveur.</p>
+<p><strong>Replis</strong> : MAB pour les équipements sans demandeur, portail captif pour les invités.</p></div>
+
+<div class="prof"><p class="lab">Pour retenir</p>
+<p>Le switch est un portier, pas un juge. Il tient la porte fermée et porte les messages, mais c'est le RADIUS qui dit oui ou non — et qui précise dans quelle pièce tu entres, c'est-à-dire le VLAN.</p>
+<p>Si on te demande « où place-t-on un NAC ? », réponds toujours : au plus près de l'accès, en amont du DHCP. Les deux moitiés de la réponse comptent.</p></div>
+
+<div class="confusion"><p class="lab">Ne pas confondre</p>
+<div class="cpair">
+<div><h4>NAC</h4><p>Décide de l'<em>admission</em>, au niveau 2, avant toute adresse IP.</p></div>
+<div><h4>Pare-feu</h4><p>Filtre le <em>transit</em>, aux niveaux 3 et 4, entre machines déjà adressées.</p></div>
+</div>
+<p class="cline">Le NAC décide qui entre, le pare-feu décide ce qui passe.</p></div>
+
+<h3>Vérifie que tu as compris</h3>
+<div class="qcm" data-answer="2"><p class="qcm-n">Question 1</p>
+<p class="qcm-q">Dans un échange 802.1X, qui prend la décision d'autoriser ?</p>
+<button class="opt">Le poste de l'utilisateur</button><button class="opt">Le switch</button>
+<button class="opt">Le serveur RADIUS</button><button class="opt">Le serveur DHCP</button>
+<div class="qcm-exp">Le switch n'est qu'un relais : il garde le port fermé et traduit EAPOL en RADIUS. La décision appartient au serveur, qui renvoie aussi le VLAN.</div></div>
+
+<div class="qcm" data-answer="1"><p class="qcm-n">Question 2</p>
+<p class="qcm-q">Quel protocole circule entre le poste et le switch ?</p>
+<button class="opt">RADIUS</button><button class="opt">EAPOL</button><button class="opt">DHCP</button><button class="opt">LDAP</button>
+<div class="qcm-exp">EAPOL entre poste et switch, RADIUS entre switch et serveur. Les confondre est l'erreur la plus fréquente sur ce sujet.</div></div>
+
+<div class="qcm" data-answer="2"><p class="qcm-n">Question 3</p>
+<p class="qcm-q">À quel moment la machine obtient-elle son adresse IP ?</p>
+<button class="opt">Avant l'authentification, pour joindre le serveur</button><button class="opt">Pendant l'échange EAP</button>
+<button class="opt">Après l'autorisation du port</button><button class="opt">Jamais, en 802.1X</button>
+<div class="qcm-exp">Tant que le port est non autorisé, seules les trames EAPOL passent. Le DHCP n'intervient qu'ensuite : c'est tout l'intérêt du mécanisme.</div></div>
+
+<div class="qcm" data-answer="1"><p class="qcm-n">Question 4</p>
+<p class="qcm-q">Une imprimante ne sait pas faire de 802.1X. Quelle solution ?</p>
+<button class="opt">Le portail captif</button><button class="opt">MAB, l'authentification par adresse MAC</button>
+<button class="opt">Désactiver le NAC sur le switch</button><button class="opt">Une adresse IP fixe</button>
+<div class="qcm-exp">MAB soumet l'adresse MAC comme identifiant. C'est faible — une MAC se falsifie — donc réservé à des VLAN restreints. Le portail captif sert aux invités humains.</div></div>
+
+<div class="qcm" data-answer="2"><p class="qcm-n">Question 5</p>
+<p class="qcm-q">Quelle méthode EAP n'envoie aucun mot de passe sur le réseau ?</p>
+<button class="opt">PEAP</button><button class="opt">EAP-TTLS</button><button class="opt">EAP-TLS</button><button class="opt">EAP-MD5</button>
+<div class="qcm-exp">EAP-TLS utilise un certificat des deux côtés. La plus robuste, et elle suppose une PKI — le lien direct avec l'étape 5.</div></div>
+
+<div class="qcm" data-answer="1"><p class="qcm-n">Question 6</p>
+<p class="qcm-q">Question d'examen probable : « Quel est le rôle d'un NAC ? Où est-il placé ? »</p>
+<button class="opt">Filtrer les flux entrants ; en coupure à la frontière</button>
+<button class="opt">Contrôler l'admission avant l'adresse ; au plus près de l'accès, switchs et bornes Wi-Fi</button>
+<button class="opt">Analyser le HTTP ; en proxy inverse devant les serveurs</button>
+<button class="opt">Centraliser les journaux ; au cœur du réseau</button>
+<div class="qcm-exp">Les deux moitiés comptent. Les trois autres réponses décrivent le pare-feu, le WAF et le SIEM — ce sont les distracteurs que l'énoncé utilisera.</div></div>
+
+<h3>Le TP</h3>
+<div class="exo"><p class="exo-n">Partie A · Packet Tracer · 45 min</p>
+<ol>
+<li>Un switch 2960, deux PC, un serveur en <code>192.168.10.10</code> avec le service AAA activé.</li>
+<li>Déclarez le switch comme client RADIUS, créez deux utilisateurs : <code>etudiant</code> et <code>prof</code>.</li>
+<li>Reprenez la configuration ci-dessus sur les deux ports d'accès.</li>
+<li><strong>Avant toute authentification, lancez un ping vers le serveur. Il doit échouer.</strong> C'est l'état non autorisé — c'est le cœur du TP.</li>
+<li>Renseignez les identifiants dans l'onglet 802.1X du PC, refaites le ping : il passe.</li>
+<li>Vérifiez avec <code>show dot1x all</code> et <code>show authentication sessions</code>.</li>
+</ol></div>
+
+<div class="exo"><p class="exo-n">Partie B · FreeRADIUS, pour de vrai · 45 min</p>
+<ol>
+<li>Sur Ubuntu, installez FreeRADIUS. Déclarez un client dans <code>clients.conf</code>, un utilisateur dans <code>authorize</code>.</li>
+<li>Lancez <code>freeradius -X</code> : le mode bavard montre chaque attribut, et ça vaut tous les schémas.</li>
+<li><code>radtest utilisateur motdepasse localhost 0 secret</code> — lisez la réponse ligne par ligne.</li>
+<li>Ajoutez les attributs de VLAN (<code>Tunnel-Type</code>, <code>Tunnel-Medium-Type</code>, <code>Tunnel-Private-Group-Id</code>) et refaites le test.</li>
+</ol></div>
+
+<div class="exo"><p class="exo-n">Partie C · Cassez-le · 30 min</p>
+<p>Provoquez chaque panne, observez le symptôme exact, réparez sans vos notes.</p>
+<ol>
+<li>Changez le secret partagé côté switch seulement. Quel message dans <code>freeradius -X</code> ?</li>
+<li>Repassez le port en <code>force-authorized</code>. Que se passe-t-il pour un utilisateur sans identifiants ?</li>
+<li>Supprimez l'attribut de VLAN. L'utilisateur est-il admis ? Où atterrit-il ?</li>
+</ol>
+<details><summary>Ce que vous devez pouvoir expliquer</summary>
+<div class="copie"><p class="lab">Correction</p>
+<p>1 · Le serveur rejette la requête sans même regarder l'utilisateur : <u>mauvais secret partagé</u>, le paquet RADIUS n'est pas authentifié.<br>
+2 · Le port s'ouvre immédiatement, sans aucune authentification. C'est le réglage par défaut d'un switch neuf.<br>
+3 · Il est admis, mais atterrit dans le VLAN configuré en dur sur le port. <u>Le NAC n'a plus que la moitié de son intérêt.</u></p></div></details></div>
+
+<div class="fiche" data-bloc="acces"><p class="lab">La fiche</p><dl>
+<dt>Définition</dt><dd>Le NAC décide si un équipement a le droit de se connecter, et dans quel VLAN le placer — avant toute attribution d'adresse IP.</dd>
+<dt>Le problème</dt><dd>Sans lui, quiconque branche un câble dans une prise murale est sur le réseau interne.</dd>
+<dt>Où ça se place</dt><dd>Au plus près de l'accès : switchs de distribution et bornes Wi-Fi, en amont du DHCP.</dd>
+<dt>À citer</dt><dd><ul>
+<li>802.1X et ses trois rôles</li><li>EAPOL poste ↔ switch, RADIUS switch ↔ serveur</li>
+<li>MAB, portail captif</li><li>Contrôle de posture, VLAN de quarantaine</li>
+<li>EAP-TLS, PEAP, EAP-TTLS</li></ul></dd>
+<dt>Ne pas confondre</dt><dd>NAC : l'admission au niveau 2. Pare-feu : le transit aux niveaux 3 et 4.</dd>
+</dl></div>
+
+<div class="copie"><p class="lab">Ce qu'on attend sur la copie</p>
+<p>« Le NAC contrôle l'admission d'un équipement au réseau, avant qu'il n'obtienne une adresse IP. Il s'appuie sur 802.1X : le poste (demandeur) s'authentifie auprès d'un serveur RADIUS, le switch (contrôleur) servant de relais et gardant le port fermé jusqu'à l'acceptation. Le serveur renvoie aussi le VLAN à appliquer. On le place au plus près de l'accès, sur les switchs et les bornes Wi-Fi. »</p></div>
+</div></section>
+
+<!-- ======================= ÉTAPES À VENIR ======================= -->
+<section class="lesson" id="zerotrust" data-bloc="reseau" data-part="Réseau" data-title="Micro-segmentation et Zero Trust" data-soon="1" hidden>
+<header class="lhead"><p class="eyebrow">Réseau · Étape 3 sur 18</p><h2>Micro-segmentation et Zero Trust</h2></header>
+<div class="lbody"><div class="soon"><p><strong>Cette étape n'est pas encore écrite.</strong></p><p>Les étapes arrivent dans l'ordre du trajet, une par séance.</p></div></div></section>
+
+<section class="lesson" id="ad" data-bloc="identite" data-part="Identité" data-title="Active Directory et Azure AD" data-soon="1" hidden>
+<header class="lhead"><p class="eyebrow">Identité · Étape 4 sur 18</p><h2>Active Directory et Azure AD</h2></header>
+<div class="lbody"><div class="soon"><p><strong>Pas encore écrite.</strong></p></div></div></section>
+
+<section class="lesson" id="pki" data-bloc="identite" data-part="Identité" data-title="PKI" data-soon="1" hidden>
+<header class="lhead"><p class="eyebrow">Identité · Étape 5 sur 18</p><h2>PKI</h2></header>
+<div class="lbody"><div class="soon"><p><strong>Pas encore écrite.</strong></p></div></div></section>
+
+<section class="lesson" id="iam" data-bloc="identite" data-part="Identité" data-title="IAM et PAM" data-soon="1" hidden>
+<header class="lhead"><p class="eyebrow">Identité · Étape 6 sur 18</p><h2>IAM et PAM</h2></header>
+<div class="lbody"><div class="soon"><p><strong>Pas encore écrite.</strong></p></div></div></section>
+
+<section class="lesson" id="sso" data-bloc="identite" data-part="Identité" data-title="SSO : SAML, OAuth, OpenID Connect" data-soon="1" hidden>
+<header class="lhead"><p class="eyebrow">Identité · Étape 7 sur 18</p><h2>SSO : SAML, OAuth, OpenID Connect</h2></header>
+<div class="lbody"><div class="soon"><p><strong>Pas encore écrite.</strong></p></div></div></section>
+
+<section class="lesson" id="tpad" data-bloc="identite" data-part="Identité" data-title="TP Active Directory" data-soon="1" hidden>
+<header class="lhead"><p class="eyebrow">Identité · Étape 8 sur 18</p><h2>TP Active Directory</h2></header>
+<div class="lbody"><div class="soon"><p><strong>Pas encore écrite.</strong></p></div></div></section>
+
+<section class="lesson" id="waf" data-bloc="application" data-part="Application" data-title="WAF et proxy" data-soon="1" hidden>
+<header class="lhead"><p class="eyebrow">Application · Étape 9 sur 18</p><h2>WAF et proxy</h2></header>
+<div class="lbody"><div class="soon"><p><strong>Pas encore écrite.</strong></p></div></div></section>
+
+<section class="lesson" id="cloud" data-bloc="application" data-part="Application" data-title="Sécurité du cloud" data-soon="1" hidden>
+<header class="lhead"><p class="eyebrow">Application · Étape 10 sur 18</p><h2>Sécurité du cloud</h2></header>
+<div class="lbody"><div class="soon"><p><strong>Pas encore écrite.</strong></p></div></div></section>
+
+<section class="lesson" id="idsips" data-bloc="surveillance" data-part="Surveillance et réponse" data-title="IDS et IPS" data-soon="1" hidden>
+<header class="lhead"><p class="eyebrow">Surveillance et réponse · Étape 11 sur 18</p><h2>IDS et IPS</h2></header>
+<div class="lbody"><div class="soon"><p><strong>Pas encore écrite.</strong></p></div></div></section>
+
+<section class="lesson" id="snort" data-bloc="surveillance" data-part="Surveillance et réponse" data-title="Snort" data-soon="1" hidden>
+<header class="lhead"><p class="eyebrow">Surveillance et réponse · Étape 12 sur 18</p><h2>Snort</h2></header>
+<div class="lbody"><div class="soon"><p><strong>Pas encore écrite.</strong></p><p>C'est votre sujet d'exposé — il aura le même traitement que les autres, ni plus ni moins.</p></div></div></section>
+
+<section class="lesson" id="wazuh" data-bloc="surveillance" data-part="Surveillance et réponse" data-title="Wazuh" data-soon="1" hidden>
+<header class="lhead"><p class="eyebrow">Surveillance et réponse · Étape 13 sur 18</p><h2>Wazuh</h2></header>
+<div class="lbody"><div class="soon"><p><strong>Pas encore écrite.</strong></p></div></div></section>
+
+<section class="lesson" id="siem" data-bloc="surveillance" data-part="Surveillance et réponse" data-title="SIEM, EDR, XDR" data-soon="1" hidden>
+<header class="lhead"><p class="eyebrow">Surveillance et réponse · Étape 14 sur 18</p><h2>SIEM, EDR, XDR</h2></header>
+<div class="lbody"><div class="soon"><p><strong>Pas encore écrite.</strong></p></div></div></section>
+
+<section class="lesson" id="cti" data-bloc="surveillance" data-part="Surveillance et réponse" data-title="CTI et SOAR" data-soon="1" hidden>
+<header class="lhead"><p class="eyebrow">Surveillance et réponse · Étape 15 sur 18</p><h2>CTI et SOAR</h2></header>
+<div class="lbody"><div class="soon"><p><strong>Pas encore écrite.</strong></p></div></div></section>
+
+<!-- ======================= POUR FINIR ======================= -->
+<section class="lesson" id="examen" data-bloc="general" data-part="Pour finir" data-title="Ce que l'examen attend" hidden>
+<header class="lhead"><p class="eyebrow">Pour finir · Étape 16 sur 18<span class="meta">12 min</span></p><h2>Ce que l'examen attend</h2></header>
+<div class="lbody">
+<p class="objectif">Savoir prédire les questions à partir du sujet de l'an dernier, et savoir à quoi ressemble une réponse complète.</p>
+
+<p>Le sujet du semestre 1 est le meilleur indice dont vous disposez. Trois choses s'en déduisent.</p>
+
+<h3>L'examen porte sur les exposés, pas sur le cours</h3>
+<p>Les neuf questions de l'an dernier interrogeaient les malwares, les protocoles applicatifs, HTTPS, les certificats, le pare-feu nouvelle génération et IPsec. Aucune ne portait sur le modèle OSI ni sur le subnetting. Vous serez donc interrogé sur les quatorze sujets, y compris les treize que vous ne présentez pas.</p>
+
+<h3>La répartition est très inégale</h3>
+<p>Trois questions sur neuf portaient sur le pare-feu nouvelle génération, deux sur les certificats et HTTPS. L'enseignant a ses sujets de prédilection et il y revient. Repérez pendant le semestre ceux sur lesquels il insiste ou reprend un orateur : ce sont vos questions.</p>
+
+<h3>Les tournures sont toujours les mêmes</h3>
+<div class="table-wrap"><table>
+<tr><th style="width:210px">La tournure</th><th>Ce qu'on attend</th><th style="width:30%">Exemple du S1</th></tr>
+<tr><td>Expliquez…</td><td>Le mécanisme, dans l'ordre, avec les termes exacts</td><td>« les étapes d'échange client-serveur en HTTPS »</td></tr>
+<tr><td>Quel est le rôle de… et où est-il placé ?</td><td>La fonction <strong>et</strong> la position</td><td>« d'1 NG Firewall ? où est-il souvent placé ? »</td></tr>
+<tr><td>Justifiez…</td><td>La cause historique, le problème résolu</td><td>« la raison qui a suscité la création d'un certificat »</td></tr>
+<tr><td>Donnez N éléments, les types, les phases</td><td>Une liste précise, apprise</td><td>« les types de VPN IPsec, les phases et 2 éléments »</td></tr>
+<tr><td>Conseillez…</td><td>Un arbitrage argumenté et ordonné</td><td>« une entreprise utilise FTP, HTTPS, IMAP ? »</td></tr>
+</table></div>
+
+<div class="retenir"><p class="lab">La structure d'une réponse qui rapporte tous les points</p>
+<p>1 · La définition en une phrase, avec le terme exact.<br>
+2 · Le problème que ça résout — ce qui se passait avant.<br>
+3 · Où ça se place, et avec quoi ça dialogue.<br>
+4 · Trois ou quatre éléments cités de mémoire.</p></div>
+
+<div class="prof"><p class="lab">Pour retenir</p>
+<p>Un exposé de trente diapositives se réduit à une demi-page. Le reste du travail — les TP — ne sert pas à remplir la fiche : il sert à ce qu'elle tienne en mémoire, et à répondre à une question tordue que tu n'avais pas prévue.</p>
+<p>Et quand tu ne sais pas : donne la définition exacte, puis le placement. Deux phrases justes valent mieux qu'une page de à-peu-près.</p></div>
+
+<h3>Les paires à savoir distinguer en une phrase</h3>
+<p>C'est là que se perdent les points, et c'est révisable en vingt minutes.</p>
+<ul>
+<li>Authentification et autorisation</li><li>IDS et IPS</li><li>IAM et PAM</li>
+<li>SAML, OAuth et OpenID Connect</li><li>Active Directory et Azure AD</li>
+<li>SIEM, EDR et XDR</li><li>SIEM et SOAR</li><li>Zero Trust et micro-segmentation</li>
+<li>WAF et pare-feu nouvelle génération</li><li>Proxy direct et proxy inverse</li>
+<li>Trafic nord-sud et trafic est-ouest</li><li>NAC et pare-feu</li><li>Signature et anomalie</li>
+</ul>
+
+<div class="confusion"><p class="lab">L'erreur de méthode la plus coûteuse</p>
+<div class="cpair">
+<div><h4>Ce qui ne rapporte rien</h4><p>Réciter tout ce qu'on sait sur le sujet, en espérant que la bonne information soit dans le tas.</p></div>
+<div><h4>Ce qui rapporte</h4><p>Répondre exactement à la question posée, dans l'ordre des quatre points, puis s'arrêter.</p></div>
+</div>
+<p class="cline">Le correcteur cherche des éléments précis, il ne lit pas pour le plaisir.</p></div>
+</div></section>
+
+<section class="lesson" id="eval1" data-bloc="general" data-part="Pour finir" data-title="Évaluation chronométrée" data-min="12" hidden>
+<header class="lhead"><p class="eyebrow">Pour finir · Étape 17 sur 18<span class="meta">12 min</span></p><h2>Évaluation chronométrée</h2></header>
+<div class="lbody">
+<p class="objectif">Répondre en temps limité, par écrit, sur ce qui est couvert jusqu'ici. L'évaluation s'étoffera à mesure que les étapes arrivent.</p>
+<div class="chrono" data-min="12">
+<p class="lab chrono-lab">Temps restant</p><p class="chrono-t">12:00</p>
+<div class="chrono-b"><button class="btn c-start" type="button">Démarrer</button><button class="btn ghost c-reset" type="button">Remettre à zéro</button></div>
+<p class="chrono-end" hidden>Temps écoulé. Posez le stylo.</p></div>
+<div class="exo"><p class="exo-n">Sujet · 4 questions · sur feuille, sans notes</p>
+<ol>
+<li>Justifiez l'apparition du modèle Zero Trust. Donnez trois principes. <em>(4 pts)</em></li>
+<li>Quel est le rôle d'un NAC ? Où est-il placé ? <em>(4 pts)</em></li>
+<li>Expliquez les étapes d'une authentification 802.1X. <em>(8 pts)</em></li>
+<li>Une imprimante ne gère pas 802.1X. Que proposez-vous, et quel risque cela introduit-il ? <em>(4 pts)</em></li>
+</ol>
+<details><summary>Voir la correction</summary>
+<div class="copie"><p class="lab">Correction</p>
+<p><u>1.</u> Télétravail, cloud, déplacement latéral. Principes : ne jamais faire confiance par défaut, vérifier explicitement, moindre privilège.</p>
+<p><u>2.</u> Admission au réseau avant attribution d'adresse, avec affectation de VLAN et contrôle de posture. Placé au plus près de l'accès, switchs et bornes, en amont du DHCP.</p>
+<p><u>3.</u> Port non autorisé → EAPOL-Start → Request Identity → Response Identity → RADIUS Access-Request → défi de la méthode EAP → preuve → Access-Accept avec attribut VLAN → port autorisé → DHCP.</p>
+<p><u>4.</u> MAB. Risque : une adresse MAC se falsifie, donc à réserver à un VLAN restreint.</p></div></details></div>
+</div></section>
+
+<section class="lesson" id="eval2" data-bloc="general" data-part="Pour finir" data-title="Évaluation finale" data-soon="1" hidden>
+<header class="lhead"><p class="eyebrow">Pour finir · Étape 18 sur 18</p><h2>Évaluation finale</h2></header>
+<div class="lbody"><div class="soon"><p><strong>À venir.</strong></p><p>Un sujet complet sur les quatorze stations, au format de l'examen : neuf questions, deux heures.</p></div></div></section>
+
+</div><!-- /right -->
+</div><!-- /shell -->
+
+<div class="pager">
+  <a class="btn ghost" id="prev" href="#accueil">← Précédent</a>
+  <p class="done-note" id="done-note" hidden>✓ Étape validée · <button id="undo" class="btn ghost" style="padding:3px 9px;font-size:.88rem">annuler</button></p>
+  <a class="btn" id="next" href="#fil">Commencer →</a>
+</div>
+
+<script>
+(function(){
+"use strict";
+/* ---------- séquences animées ---------- */
+var SEQ = { dot1x: (function(){
+  var X={pc:96,sw:350,rad:620};
+  var M=[
+   {f:"pc",t:"sw",l:"EAPOL-Start",n:"Le poste signale qu'il veut s'authentifier"},
+   {f:"sw",t:"pc",l:"EAP-Request / Identity",n:"Le switch demande : qui es-tu ?"},
+   {f:"pc",t:"sw",l:"EAP-Response / Identity",n:"Le poste donne son identité"},
+   {f:"sw",t:"rad",l:"RADIUS Access-Request",n:"Le switch encapsule et relaie au serveur"},
+   {f:"rad",t:"pc",l:"EAP-Request (PEAP, EAP-TLS…)",n:"Le serveur lance le défi, relayé par le switch"},
+   {f:"pc",t:"rad",l:"EAP-Response (certificat ou mot de passe)",n:"Le poste fournit sa preuve"},
+   {f:"rad",t:"sw",l:"RADIUS Access-Accept + attribut VLAN",n:"Le serveur décide et indique le VLAN"},
+   {f:"sw",t:"pc",l:"Port autorisé → DHCP",n:"Seulement maintenant le poste obtient une adresse"}];
+  function actor(x,l,s,on){
+    return '<g><rect x="'+(x-72)+'" y="20" width="144" height="46" rx="6" fill="var(--surface)" stroke="'+(on?"var(--c1)":"var(--line)")+'" stroke-width="'+(on?2:1.25)+'"/>'+
+     '<text x="'+x+'" y="40" text-anchor="middle" font-size="13.5" font-weight="700" fill="var(--ink)">'+l+'</text>'+
+     '<text x="'+x+'" y="56" text-anchor="middle" font-size="11" fill="var(--muted)">'+s+'</text>'+
+     '<line x1="'+x+'" y1="66" x2="'+x+'" y2="364" stroke="var(--line)" stroke-dasharray="3 4"/></g>';}
+  var steps=[{t:"État initial",d:"Le câble est branché mais le port est <b>non autorisé</b> : seules les trames EAPOL passent. Pas de DHCP, pas d'adresse."}];
+  M.forEach(function(m,k){ steps.push({t:"Message "+(k+1)+" — "+m.l,d:m.n}); });
+  function draw(i){
+    var a=i>0?[M[i-1].f,M[i-1].t]:[];
+    var s='<svg viewBox="0 0 716 384" role="img" aria-label="Sequence 802.1X" style="width:100%;height:auto" font-family="Source Sans 3, sans-serif">'+
+     '<defs><marker id="so" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="var(--c1)"/></marker>'+
+     '<marker id="sf" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="var(--line)"/></marker></defs>';
+    s+=actor(X.pc,"Demandeur","le poste",a.indexOf("pc")>=0);
+    s+=actor(X.sw,"Contrôleur","le switch",a.indexOf("sw")>=0);
+    s+=actor(X.rad,"Serveur","RADIUS",a.indexOf("rad")>=0);
+    if(i===0){ s+='<rect x="110" y="150" width="226" height="42" rx="5" fill="none" stroke="var(--c1)" stroke-width="1.5" stroke-dasharray="5 4"/>'+
+      '<text x="223" y="168" text-anchor="middle" font-size="12.5" font-weight="700" fill="var(--ink)">Port non autorisé</text>'+
+      '<text x="223" y="184" text-anchor="middle" font-size="11" fill="var(--muted)">seul EAPOL passe, pas de DHCP</text>'; }
+    for(var k=0;k<i;k++){
+      var m=M[k],y=96+k*34,on=(k===i-1),x1=X[m.f],x2=X[m.t];
+      s+='<line x1="'+x1+'" y1="'+y+'" x2="'+x2+'" y2="'+y+'" stroke="'+(on?"var(--c1)":"var(--line)")+'" stroke-width="'+(on?2:1.25)+'" marker-end="url(#'+(on?"so":"sf")+')"/>'+
+         '<text x="'+((x1+x2)/2)+'" y="'+(y-7)+'" text-anchor="middle" font-size="11.5" font-weight="'+(on?700:400)+'" fill="'+(on?"var(--ink)":"var(--muted)")+'">'+m.l+'</text>';
+    }
+    if(i===M.length){ s+='<rect x="110" y="344" width="226" height="28" rx="5" fill="none" stroke="var(--c5)" stroke-width="1.5"/>'+
+      '<text x="223" y="362" text-anchor="middle" font-size="12" font-weight="700" fill="var(--c5)">Port autorisé, VLAN appliqué</text>'; }
+    return s+'</svg>';
+  }
+  return {steps:steps,draw:draw};
+})()};
+
+document.querySelectorAll('.seq').forEach(function(box){
+  var spec=SEQ[box.dataset.seq]; if(!spec) return;
+  var fig=document.createElement('div');
+  var ctl=document.createElement('div'); ctl.className='seq-ctl';
+  ctl.innerHTML='<button class="btn ghost" type="button" data-p>Précédent</button>'+
+                '<button class="btn" type="button" data-n>Étape suivante</button>'+
+                '<span class="seq-cap"></span>';
+  box.appendChild(fig); box.appendChild(ctl);
+  var p=ctl.querySelector('[data-p]'), n=ctl.querySelector('[data-n]'), cap=ctl.querySelector('.seq-cap'), i=0;
+  function go(){ fig.innerHTML=spec.draw(i);
+    cap.innerHTML='<b>'+spec.steps[i].t+'</b> — '+spec.steps[i].d;
+    p.disabled=(i===0); n.disabled=(i===spec.steps.length-1);
+    n.textContent=(i===spec.steps.length-1)?'Terminé':'Étape suivante'; }
+  p.addEventListener('click',function(){ if(i>0){i--;go();} });
+  n.addEventListener('click',function(){ if(i<spec.steps.length-1){i++;go();} });
+  go();
+});
+
+/* ---------- QCM ---------- */
+document.querySelectorAll('.lesson').forEach(function(sec){
+  var qs=sec.querySelectorAll('.qcm'); if(!qs.length) return;
+  var score=document.createElement('p'); score.className='qcm-score';
+  qs[qs.length-1].parentNode.insertBefore(score,qs[qs.length-1].nextSibling);
+  var ans=0,right=0;
+  qs.forEach(function(q){
+    var good=+q.dataset.answer, exp=q.querySelector('.qcm-exp');
+    var opts=Array.prototype.slice.call(q.querySelectorAll('.opt'));
+    opts.forEach(function(b,k){
+      b.addEventListener('click',function(){
+        if(q.dataset.done) return;
+        q.dataset.done='1'; ans++; var ok=(k===good); if(ok) right++;
+        opts.forEach(function(x,xi){ x.disabled=true;
+          if(xi===good) x.classList.add('good'); else if(xi===k) x.classList.add('bad'); });
+        exp.innerHTML='<b>'+(ok?'Juste.':'Non.')+'</b> '+exp.innerHTML;
+        exp.classList.add('on');
+        if(ans===qs.length){
+          score.textContent=right+' / '+qs.length+' — '+
+            (right===qs.length?'Parfait. Passe au TP.':right>=qs.length-1?'Bon. Relis le point manqué.':'Reprends le mécanisme avant d\'aller plus loin.');
+          score.classList.add('on');
+        }
+      });
+    });
+  });
+});
+
+/* ---------- sommaire, progression, navigation ---------- */
+var lessons=Array.prototype.slice.call(document.querySelectorAll('.lesson'));
+var ids=lessons.map(function(s){return s.id;});
+var KEY='parcours-rs-s2', done={};
+try{ done=JSON.parse(localStorage.getItem(KEY)||'{}')||{}; }catch(e){ done={}; }
+function save(){ try{ localStorage.setItem(KEY,JSON.stringify(done)); }catch(e){} }
+
+var nav=document.getElementById('nav'), html='', part=null, n=0;
+lessons.forEach(function(s){
+  var p=s.dataset.part||'';
+  if(p!==part){ if(part!==null) html+='</ol>';
+    html+=(p?'<p class="nav-part" data-bloc="'+(s.dataset.bloc||'')+'">'+p+'</p>':'')+'<ol class="nav-list">'; part=p; }
+  var num=s.id==='accueil'?'i':String(++n);
+  html+='<li><a href="#'+s.id+'" data-id="'+s.id+'" class="'+(s.dataset.soon?'soon':'')+'">'+
+        '<span class="nav-n">'+num+'</span><span class="ttl">'+s.dataset.title+'</span></a></li>';
+});
+nav.innerHTML=html+'</ol>';
+var links=Array.prototype.slice.call(nav.querySelectorAll('a'));
+links.forEach(function(a){ a.dataset.num=a.querySelector('.nav-n').textContent; });
+var total=ids.length-1, resetBtn=document.getElementById('reset');
+
+function refreshProgress(){
+  var c=0;
+  links.forEach(function(a){
+    var d=!!done[a.dataset.id]&&a.dataset.id!=='accueil';
+    a.classList.toggle('done',d);
+    a.querySelector('.nav-n').textContent=d?'✓':a.dataset.num;
+    if(d) c++;
+  });
+  document.getElementById('prog-fill').style.width=(100*c/total)+'%';
+  document.getElementById('prog-txt').textContent=c+' étape'+(c>1?'s':'')+' validée'+(c>1?'s':'')+' sur '+total;
+  document.getElementById('mini-prog').textContent=c+' / '+total;
+  resetBtn.hidden=(c===0); disarm();
+}
+var armed=false,armT=null;
+function disarm(){ armed=false; clearTimeout(armT); resetBtn.textContent='Remettre ma progression à zéro'; resetBtn.classList.remove('warn'); }
+resetBtn.addEventListener('click',function(){
+  if(!armed){ armed=true; resetBtn.textContent='Appuie encore pour tout effacer'; resetBtn.classList.add('warn'); armT=setTimeout(disarm,5000); return; }
+  done={}; save(); refreshProgress(); refreshDone();
+});
+
+var side=document.getElementById('side'), scrim=document.getElementById('scrim'), menuBtn=document.getElementById('menu-btn');
+function closeMenu(){ side.classList.remove('open'); scrim.hidden=true; menuBtn.setAttribute('aria-expanded','false'); }
+menuBtn.addEventListener('click',function(){
+  var o=!side.classList.contains('open');
+  side.classList.toggle('open',o); scrim.hidden=!o; menuBtn.setAttribute('aria-expanded',String(o));
+});
+scrim.addEventListener('click',closeMenu);
+
+var prev=document.getElementById('prev'), next=document.getElementById('next'),
+    doneNote=document.getElementById('done-note'), undo=document.getElementById('undo'), current=0;
+function refreshDone(){ var d=!!done[ids[current]]&&current>0; doneNote.hidden=!d; undo.hidden=!d; }
+undo.addEventListener('click',function(){ delete done[ids[current]]; save(); refreshProgress(); refreshDone(); });
+
+function show(id,scroll){
+  var i=ids.indexOf(id); if(i<0) i=0; current=i;
+  document.querySelectorAll('video').forEach(function(v){ try{ v.pause(); }catch(e){} });
+  lessons.forEach(function(s,k){ s.hidden=(k!==i); });
+  links.forEach(function(a){ if(a.dataset.id===ids[i]) a.setAttribute('aria-current','page'); else a.removeAttribute('aria-current'); });
+  prev.hidden=(i===0);
+  if(i>0) prev.setAttribute('href','#'+ids[i-1]);
+  var last=(i===ids.length-1);
+  next.setAttribute('href',last?'#accueil':'#'+ids[i+1]);
+  next.textContent=(i===0)?'Commencer le parcours →':(last?'Valider et revenir au début':"J'ai compris, étape suivante →");
+  refreshDone(); closeMenu();
+  if(scroll) window.scrollTo(0,0);
+}
+next.addEventListener('click',function(){ if(current>0){ done[ids[current]]=true; save(); refreshProgress(); } });
+window.addEventListener('hashchange',function(){ show(location.hash.slice(1),true); });
+
+/* ---------- chronomètres, sur l'horloge réelle ---------- */
+document.querySelectorAll('.chrono').forEach(function(c){
+  var totalS=(+c.dataset.min||15)*60, left=totalS, timer=null, endAt=0;
+  var t=c.querySelector('.chrono-t'), b=c.querySelector('.c-start'), r=c.querySelector('.c-reset'), end=c.querySelector('.chrono-end');
+  function draw(){ var m=Math.floor(left/60), s=left%60; t.textContent=(m<10?'0':'')+m+':'+(s<10?'0':'')+s; }
+  function stop(){ clearInterval(timer); timer=null; b.textContent=(left===totalS)?'Démarrer':'Reprendre'; }
+  function tick(){ left=Math.max(0,Math.ceil((endAt-Date.now())/1000)); draw();
+    if(left<=0){ stop(); b.textContent='Terminé'; end.hidden=false; } }
+  b.addEventListener('click',function(){
+    if(timer){ tick(); if(timer) stop(); return; }
+    if(left===0) return;
+    end.hidden=true; b.textContent='Pause'; endAt=Date.now()+left*1000; timer=setInterval(tick,250);
+  });
+  r.addEventListener('click',function(){ clearInterval(timer); timer=null; left=totalS; draw(); b.textContent='Démarrer'; end.hidden=true; });
+  document.addEventListener('visibilitychange',function(){ if(timer&&!document.hidden) tick(); });
+});
+
+/* ---------- thème ---------- */
+var TKEY='parcours-rs-theme';
+try{ var th=localStorage.getItem(TKEY); if(th) document.documentElement.dataset.theme=th; }catch(e){}
+document.getElementById('theme').addEventListener('click',function(){
+  var cur=document.documentElement.dataset.theme;
+  var isDark=cur?cur==='dark':window.matchMedia('(prefers-color-scheme:dark)').matches;
+  var nx=isDark?'light':'dark';
+  document.documentElement.dataset.theme=nx;
+  try{ localStorage.setItem(TKEY,nx); }catch(e){}
+});
+
+refreshProgress();
+show(location.hash.slice(1)||'accueil',true);
+})();
+</script>
+</body>
+</html>
